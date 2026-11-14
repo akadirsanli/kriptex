@@ -1,0 +1,33 @@
+{
+  "name": "kriptex",
+  "version": "4.1.0",
+  "private": true,
+  "description": "Serverless, client-side cryptography suite: AES-GCM text and file encryption, hashing, password generation and an encrypted local vault.",
+  "keywords": [
+    "cryptography",
+    "aes-gcm",
+    "webcrypto",
+    "pbkdf2",
+    "client-side",
+    "privacy",
+    "web-workers",
+    "encryption"
+  ],
+  "homepage": "https://akadirsanli.github.io/kriptex/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akadirsanli/kriptex.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "serve": "python -m http.server 8080",
+    "test": "node --test tests/",
+    "test:quick": "node --test tests/static.test.mjs",
+    "fixtures": "node scripts/make-fixtures.mjs",
+    "checksums": "node scripts/checksums.mjs"
+  }
+}

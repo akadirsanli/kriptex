@@ -1,0 +1,70 @@
+name: Bug report
+description: Report something that does not work as documented
+labels: [bug]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For security problems, **do not use this form** — see [SECURITY.md](https://github.com/akadirsanli/kriptex/blob/main/SECURITY.md).
+
+        Never paste a real passphrase, plaintext or vault backup here.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Text encryption
+        - File sealing (.krx)
+        - Hashing
+        - Hash recovery
+        - Compression
+        - Generators
+        - Vault
+        - UI / themes
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown in the header, e.g. v4.1
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Firefox 133 on macOS 15
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the encrypt tab
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      description: Errors from the browser console, if any.
+      render: shell
+    validations:
+      required: false
