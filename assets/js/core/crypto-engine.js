@@ -1,5 +1,5 @@
-﻿/* ==========================================================================
-   core/crypto-engine.js â€” encryption profiles, KRX5 envelope, KRXFILE2 container
+/* ==========================================================================
+   core/crypto-engine.js — encryption profiles, KRX5 envelope, KRXFILE2 container
 
    Design notes
    ------------
@@ -57,7 +57,7 @@ KX.crypto = (() => {
             cipher: 'AES-128-GCM',
             keyLength: 128,
             iterations: 600000,
-            tagline: 'PBKDF2 Ã— 600k Â· fast, everyday secrets',
+            tagline: 'PBKDF2 × 600k · fast, everyday secrets',
             info: '<strong>AES-128-GCM</strong> with a PBKDF2-HMAC-SHA256 key stretched over <strong>600,000 iterations</strong>. ' +
                   'Brute-forcing the passphrase is the only practical attack, and stretching makes every guess expensive. ' +
                   'Best for everyday notes and quick exchanges where speed matters.'
@@ -67,8 +67,8 @@ KX.crypto = (() => {
             cipher: 'AES-256-GCM',
             keyLength: 256,
             iterations: 1000000,
-            tagline: 'PBKDF2 Ã— 1M Â· recommended balance',
-            info: '<strong>AES-256-GCM</strong> with <strong>1,000,000 PBKDF2 iterations</strong> â€” the same profile used for file sealing and the vault. ' +
+            tagline: 'PBKDF2 × 1M · recommended balance',
+            info: '<strong>AES-256-GCM</strong> with <strong>1,000,000 PBKDF2 iterations</strong> — the same profile used for file sealing and the vault. ' +
                   'GCM authenticates both the ciphertext and the envelope header: any modification in transit makes decryption fail loudly instead of returning corrupted data. ' +
                   'The recommended default for sensitive content.'
         },
@@ -77,7 +77,7 @@ KX.crypto = (() => {
             cipher: 'AES-256-GCM',
             keyLength: 256,
             iterations: 2000000,
-            tagline: 'PBKDF2 Ã— 2M Â· high-value data, slower',
+            tagline: 'PBKDF2 × 2M · high-value data, slower',
             info: '<strong>AES-256-GCM</strong> with <strong>2,000,000 PBKDF2 iterations</strong>. Deriving the key takes a couple of seconds per attempt, ' +
                   'which throttles offline dictionary attacks by an order of magnitude versus the standard profile. ' +
                   'Use for long-lived, high-value secrets where a few seconds of patience is acceptable.'
@@ -212,7 +212,7 @@ KX.crypto = (() => {
 
     /**
      * Encrypt text into a self-describing KRX5 envelope (base64url JSON).
-     * Pipeline: deflate â†’ PBKDF2(level) â†’ AES-GCM(header as AAD).
+     * Pipeline: deflate → PBKDF2(level) → AES-GCM(header as AAD).
      * Fresh salt/IV per call.
      */
     async function encryptText(plaintext, passphrase, levelName = 'advanced') {
@@ -515,7 +515,7 @@ KX.crypto = (() => {
         return algo.fn(text).toString();
     }
 
-    /** Streamed file hashing in 4 MB slices â€” constant memory usage. */
+    /** Streamed file hashing in 4 MB slices — constant memory usage. */
     async function hashFile(file, algorithm, onProgress) {
         const factory = STREAM_ALGOS[algorithm];
         if (!factory) throw new Error('Unsupported algorithm: ' + algorithm);

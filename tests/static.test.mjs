@@ -99,3 +99,45 @@ test('vendored third-party files match CHECKSUMS.txt', () => {
         assert.equal(actual, expected, `${rel} does not match its recorded checksum`);
     }
 });
+
+test('every text file is UTF-8 without BOM and free of mojibake', () => {
+    // Guards against editors that re-encode files and turn an em dash into a
+    // three-character sequence starting with U+00E2. The markers are built from
+    // code points so this file does not trip its own check.
+    const TEXT = /\.(md|js|mjs|html|css|json|ya?ml|txt|svg)$/;
+    const MARKERS = [
+        String.fromCharCode(0x00e2, 0x20ac),   // a-circumflex + euro
+        String.fromCharCode(0x00f0, 0x0178),   // eth + Y-diaeresis
+        String.fromCharCode(0x00c3, 0x00a2),   // A-tilde + cent
+        String.fromCharCode(0x00c3, 0x00a9),   // A-tilde + copyright
+        String.fromCharCode(0x00c2, 0x00b7)    // A-circumflex + middle dot
+    ];
+    const problems = [];
+
+    const walkAll = (dir) => {
+        for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+            if (entry.name === '.git' || entry.name === 'node_modules') continue;
+            const full = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+                walkAll(full);
+                continue;
+            }
+            if (!TEXT.test(entry.name)) continue;
+
+            const raw = fs.readFileSync(full);
+            const rel = path.relative(ROOT, full).split(path.sep).join('/');
+            if (raw[0] === 0xef && raw[1] === 0xbb && raw[2] === 0xbf) {
+                problems.push(`${rel}: starts with a UTF-8 BOM`);
+            }
+            const decoded = new TextDecoder('utf-8', { fatal: true }).decode(raw);
+            const roundTrip = Buffer.from(decoded, 'utf8');
+            if (!roundTrip.equals(raw)) problems.push(`${rel}: does not round-trip as UTF-8`);
+            for (const marker of MARKERS) {
+                if (decoded.includes(marker)) problems.push(`${rel}: contains mojibake "${marker}"`);
+            }
+        }
+    };
+
+    walkAll(ROOT);
+    assert.deepEqual(problems, [], 'encoding problems:\n' + problems.join('\n'));
+});

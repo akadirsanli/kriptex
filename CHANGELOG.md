@@ -1,6 +1,6 @@
-﻿# Changelog
+# Changelog
 
-## 4.1.0 â€” 2026-11-15
+## 4.1.0 — 2026-11-15
 
 Security and durability hardening. No action is required for existing data:
 every old blob still decrypts.
@@ -22,7 +22,7 @@ every old blob still decrypts.
   iteration count in an authenticated header, plus the original filename stored
   inside the ciphertext.
 * Every field read from an untrusted blob is validated before a key is derived
-  (iteration bounds 100kâ€“4M, salt/IV sizes, ciphertext cap).
+  (iteration bounds 100k–4M, salt/IV sizes, ciphertext cap).
 * PBKDF2 work factors raised to 600k (standard), 1M (advanced) and 2M (maximum);
   file sealing and new vaults use 600k. Older blobs keep their own parameters.
 * Decryption now caps the inflated output (256 MiB) to stop decompression bombs.

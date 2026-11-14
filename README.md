@@ -1,46 +1,46 @@
-﻿# KRIPTEX v4.1 â€” Client-Side Encryption Suite
+# KRIPTEX v4.1 — Client-Side Encryption Suite
 
 [![ci](https://github.com/akadirsanli/kriptex/actions/workflows/ci.yml/badge.svg)](https://github.com/akadirsanli/kriptex/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-33ff66.svg)](LICENSE)
 [![no network](https://img.shields.io/badge/runtime%20requests-none-33ff66.svg)](SECURITY.md)
 
-ğŸŒ **[Live app â†’](https://akadirsanli.github.io/kriptex/)**
+🌐 **[Live app →](https://akadirsanli.github.io/kriptex/)**
 
 KRIPTEX is a serverless cryptography toolkit that runs entirely in your browser.
 It encrypts text and files with AES-GCM, hashes text and files, generates
 passwords and passphrases, and keeps an encrypted notes vault in local storage.
 
-**Nothing is uploaded, and nothing is fetched after the page loads** â€” the
+**Nothing is uploaded, and nothing is fetched after the page loads** — the
 libraries, fonts and icons are vendored in this repository and a strict
 Content-Security-Policy (`connect-src 'none'`) enforces it.
 
 ## Features
 
-* **Text encryption** â€” AES-128/256-GCM with PBKDF2-HMAC-SHA256 (600k / 1M / 2M
+* **Text encryption** — AES-128/256-GCM with PBKDF2-HMAC-SHA256 (600k / 1M / 2M
   iterations). Self-describing `KRX5` envelopes; the whole header is
   authenticated as GCM additional data, so a blob cannot be downgraded or
   re-labelled. Legacy `KRX4` and v3 blobs still open.
-* **File sealing** â€” `.krx` (`KRXFILE2`) containers with an authenticated
+* **File sealing** — `.krx` (`KRXFILE2`) containers with an authenticated
   header and an encrypted filename, so the restored file keeps its name. Sealed
   files are re-decrypted and compared before the download is offered.
-* **Hashing** â€” SHA-1/224/256/384/512, Keccak-256/512, RIPEMD-160, MD5 for text
+* **Hashing** — SHA-1/224/256/384/512, Keccak-256/512, RIPEMD-160, MD5 for text
   and for files (4 MB streaming slices, constant memory), plus digest comparison
   and length-based algorithm detection.
-* **Hash recovery** â€” dictionary attack in a Web Worker with a 112-mutation
+* **Hash recovery** — dictionary attack in a Web Worker with a 112-mutation
   generator, live rate display, real cancellation and flat memory use.
-* **Compression** â€” streaming zlib in a Web Worker, base64 or binary output,
+* **Compression** — streaming zlib in a Web Worker, base64 or binary output,
   with an inflation cap so a malicious payload cannot exhaust memory.
-* **Generators** â€” CSPRNG passwords (every enabled class guaranteed) and
+* **Generators** — CSPRNG passwords (every enabled class guaranteed) and
   EFF-large-list passphrases (7,776 words, 12.9 bits each), both with a live
   entropy estimate.
-* **Encrypted vault** â€” notes sealed as a single AES-256-GCM blob with a
+* **Encrypted vault** — notes sealed as a single AES-256-GCM blob with a
   sentinel-based passphrase check, idle auto-lock, encrypted export/import
   backups, cross-tab locking and a guard against storage quota failures.
 
 ## Quick start
 
 Web Crypto requires a secure context, so serve the folder over `http://localhost`
-or `https://` â€” opening `index.html` from the filesystem is not supported.
+or `https://` — opening `index.html` from the filesystem is not supported.
 
 ```bash
 git clone https://github.com/akadirsanli/kriptex.git
@@ -71,7 +71,7 @@ The format is documented byte-for-byte in [docs/FORMAT.md](docs/FORMAT.md), and
 ## Project layout
 
 ```
-index.html                 markup only â€” no inline script
+index.html                 markup only — no inline script
 assets/css/                themes and layout
 assets/js/core/            crypto engine, vault, workers, utils, wordlist
 assets/js/tabs/            one module per tab
@@ -94,8 +94,8 @@ someone who watches you type the passphrase.
   sentinel.
 * Keys are derived with Web Crypto and are non-extractable.
 * Salts and IVs are fresh for every operation and come from `crypto.getRandomValues`.
-* The scrypt-style "no server" claim is enforced by the CSP and a CI test, not
-  only by documentation.
+* The "no server" claim is enforced by the CSP and a CI test, not only by
+  documentation.
 
 ## Roadmap
 
@@ -106,5 +106,5 @@ someone who watches you type the passphrase.
 
 ## License
 
-[MIT](LICENSE). Vendored third-party assets keep their own licenses â€” see
+[MIT](LICENSE). Vendored third-party assets keep their own licenses — see
 [assets/vendor/fontawesome/README.md](assets/vendor/fontawesome/README.md).

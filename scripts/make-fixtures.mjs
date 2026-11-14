@@ -1,5 +1,5 @@
-﻿/* ==========================================================================
-   scripts/make-fixtures.mjs â€” generate the format compatibility fixtures.
+/* ==========================================================================
+   scripts/make-fixtures.mjs — generate the format compatibility fixtures.
 
    The fixtures are produced by an *independent* implementation (Node's
    WebCrypto + zlib, not the app code) so test/crypto.test.mjs proves that the
@@ -51,7 +51,7 @@ function write(name, data) {
 /* ---------- legacy v4 text envelope (unauthenticated header) ---------- */
 {
     const pass = 'kriptex-fixture-v4';
-    const plaintext = 'Legacy KRX4 envelope fixture â€” decrypts with the v4 profile.';
+    const plaintext = 'Legacy KRX4 envelope fixture — decrypts with the v4 profile.';
     const salt = randomBytes(16);
     const iv = randomBytes(12);
     const iterations = 250000;

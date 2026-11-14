@@ -1,5 +1,5 @@
-﻿/* ==========================================================================
-   test/harness.mjs â€” loads the browser modules into a VM context so the
+/* ==========================================================================
+   test/harness.mjs — loads the browser modules into a VM context so the
    crypto and vault cores can be tested with node:test (no bundler, no jsdom).
 
    Only the parts the core modules touch are stubbed: localStorage, a minimal
