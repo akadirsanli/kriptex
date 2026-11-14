@@ -1,0 +1,185 @@
+/* ==========================================================================
+   effects.css — background fx, CRT overlay, cursor, animations, responsive
+   ========================================================================== */
+
+.bg-fx {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+#fx-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.grid-bg {
+    position: absolute;
+    inset: -60px;
+    background-image:
+        linear-gradient(var(--acc-dim) 1px, transparent 1px),
+        linear-gradient(90deg, var(--acc-dim) 1px, transparent 1px);
+    background-size: 46px 46px;
+    opacity: 0.35;
+    mask-image: radial-gradient(ellipse at 50% 35%, black 25%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at 50% 35%, black 25%, transparent 75%);
+}
+
+/* mouse spotlight */
+#spotlight {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(400px circle at var(--sx, 50%) var(--sy, 30%), var(--acc-dim) 0%, transparent 65%);
+    mix-blend-mode: screen;
+}
+
+/* CRT scanlines */
+.crt-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 3px);
+    opacity: 0.55;
+    animation: crtFlicker 7s infinite steps(1);
+}
+
+@keyframes crtFlicker {
+    0%, 100% { opacity: 0.55; }
+    92% { opacity: 0.55; }
+    93% { opacity: 0.42; }
+    94% { opacity: 0.58; }
+    95% { opacity: 0.5; }
+    96% { opacity: 0.55; }
+}
+
+.fx-vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 91;
+    pointer-events: none;
+    background: radial-gradient(ellipse at center, transparent 52%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* cursor ring */
+#cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 95;
+    pointer-events: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid var(--acc);
+    box-shadow: 0 0 12px var(--acc-strong), inset 0 0 7px var(--acc-dim);
+    transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+#cursor-ring.hovering {
+    width: 46px;
+    height: 46px;
+    border-color: var(--acc2);
+}
+
+@media (pointer: coarse) {
+    #cursor-ring { display: none; }
+}
+
+/* logo glitch */
+.logo-row h1::before,
+.logo-row h1::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.logo-row h1::before { color: var(--acc2); animation: glitchA 4.6s infinite steps(1); }
+.logo-row h1::after  { color: #ff0055;    animation: glitchB 4.6s infinite steps(1); }
+
+@keyframes glitchA {
+    0%, 93%, 100% { opacity: 0; transform: none; clip-path: inset(0 0 0 0); }
+    94% { opacity: 0.75; transform: translate(-4px, 2px); clip-path: inset(12% 0 58% 0); }
+    96% { opacity: 0.75; transform: translate(3px, -1px); clip-path: inset(62% 0 8% 0); }
+    98% { opacity: 0; }
+}
+
+@keyframes glitchB {
+    0%, 93%, 100% { opacity: 0; transform: none; clip-path: inset(0 0 0 0); }
+    94% { opacity: 0.75; transform: translate(4px, -2px); clip-path: inset(48% 0 32% 0); }
+    96% { opacity: 0.75; transform: translate(-3px, 1px); clip-path: inset(4% 0 78% 0); }
+    98% { opacity: 0; }
+}
+
+/* entrance */
+.header { animation: bootIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.tabs { animation: bootIn 0.8s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.content { animation: bootIn 0.8s 0.24s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.footer { animation: bootIn 0.8s 0.36s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@keyframes bootIn {
+    from { opacity: 0; transform: translateY(-18px); filter: blur(5px); }
+    to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.tab-btn { animation: tabIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.tab-btn:nth-child(1) { animation-delay: 0.20s; }
+.tab-btn:nth-child(2) { animation-delay: 0.25s; }
+.tab-btn:nth-child(3) { animation-delay: 0.30s; }
+.tab-btn:nth-child(4) { animation-delay: 0.35s; }
+.tab-btn:nth-child(5) { animation-delay: 0.40s; }
+.tab-btn:nth-child(6) { animation-delay: 0.45s; }
+.tab-btn:nth-child(7) { animation-delay: 0.50s; }
+
+@keyframes tabIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 860px) {
+    .dual-grid { grid-template-columns: 1fr; }
+    .stats-grid.six { grid-template-columns: repeat(3, 1fr); }
+    .vault-layout { grid-template-columns: 1fr; }
+    .note-list { max-height: 190px; flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+    .note-item { min-width: 170px; }
+}
+
+@media (max-width: 680px) {
+    .container { padding: 1.1rem 0.8rem; }
+    .tab-btn { padding: 0.55rem 0.7rem; font-size: 0.72rem; }
+    .tab-path { display: none; }
+    .stats-grid, .stats-grid.six { grid-template-columns: 1fr 1fr; }
+    .level-grid { grid-template-columns: 1fr; }
+    .mode-row { grid-template-columns: 1fr 1fr 1fr; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .theme-options { grid-template-columns: 1fr; }
+    .status-toast { left: 0.9rem; right: 0.9rem; max-width: none; }
+    .button-row { flex-direction: column; }
+}
+
+/* ---------- reduced motion / fx off ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001s !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001s !important;
+    }
+}
+
+body.fx-off #fx-canvas,
+body.fx-off #spotlight,
+body.fx-off #cursor-ring,
+body.fx-off .crt-overlay { display: none !important; }
+
+body.fx-off .term-panel::before { display: none; }
+body.fx-off .term-panel { transform: none !important; }
