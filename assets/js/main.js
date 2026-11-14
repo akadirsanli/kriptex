@@ -35,8 +35,11 @@
             document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
             const panel = U.$('tab-' + btn.dataset.tab);
             if (panel) panel.classList.add('active');
-            if (updateHash && history.replaceState) {
-                history.replaceState(null, '', '#' + btn.dataset.tab);
+            if (updateHash) {
+                try {
+                    if (history.replaceState) history.replaceState(null, '', '#' + btn.dataset.tab);
+                } catch (e) { /* file:// or another locked-down context */ }
+                window.scrollTo({ top: 0, behavior: 'auto' });
             }
         };
 
@@ -101,11 +104,26 @@
         return true;
     }
 
+    /** Dropzones are divs for layout reasons; make them keyboard-operable. */
+    function initDropzones() {
+        document.querySelectorAll('.dropzone').forEach((zone) => {
+            zone.tabIndex = 0;
+            zone.setAttribute('role', 'button');
+            zone.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    zone.click();
+                }
+            });
+        });
+    }
+
     function boot() {
         if (!checkEnvironment()) return;
 
         KX.fx.init();
         initRouter();
+        initDropzones();
 
         KX.tabs.encrypt.init();
         KX.tabs.file.init();

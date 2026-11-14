@@ -200,10 +200,84 @@ KX.utils = (() => {
         return items;
     }
 
+    /* ---------- confirmation dialog ---------- */
+
+    let modalState = null;
+
+    function closeModal(result) {
+        const modal = $('modal');
+        if (!modal) return;
+        modal.hidden = true;
+        document.body.style.removeProperty('overflow');
+        const current = modalState;
+        modalState = null;
+        if (current && current.previousFocus && current.previousFocus.focus) {
+            current.previousFocus.focus();
+        }
+        if (current && current.resolve) current.resolve(result);
+    }
+
+    function wireModal() {
+        const modal = $('modal');
+        if (!modal || wireModal.done) return;
+        wireModal.done = true;
+
+        const cancel = $('modal-cancel');
+        const confirm = $('modal-confirm');
+        if (cancel) cancel.addEventListener('click', () => closeModal(false));
+        if (confirm) confirm.addEventListener('click', () => closeModal(true));
+
+        const scrim = modal.querySelector('[data-modal-cancel]');
+        if (scrim) scrim.addEventListener('click', () => closeModal(false));
+
+        document.addEventListener('keydown', (event) => {
+            if (modal.hidden) return;
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeModal(false);
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                closeModal(true);
+            }
+        });
+    }
+
+    /**
+     * Promise-based replacement for window.confirm().
+     * Resolves true when the user confirms.
+     */
+    function confirmAction(options) {
+        const opts = options || {};
+        const modal = $('modal');
+        if (!modal) return Promise.resolve(window.confirm(opts.body || 'Are you sure?'));
+
+        wireModal();
+
+        const title = $('modal-title');
+        const body = $('modal-body');
+        const confirm = $('modal-confirm');
+        const previousFocus = document.activeElement;
+
+        if (title) title.textContent = opts.title || 'Confirm';
+        if (body) body.textContent = opts.body || '';
+        if (confirm) {
+            confirm.textContent = opts.confirmLabel || 'Confirm';
+            confirm.className = 'btn ' + (opts.danger === false ? 'btn-primary' : 'btn-danger');
+        }
+
+        modal.hidden = false;
+        document.body.style.overflow = 'hidden';
+        if (confirm) confirm.focus();
+
+        return new Promise((resolve) => {
+            modalState = { resolve, previousFocus };
+        });
+    }
+
     return {
         $, toast, formatBytes, formatCount, formatSeconds, downloadBlob, timestampedName,
         copyText, clearFields, bufToB64, b64ToBuf, utf8Encode, utf8Decode, bytesToHex,
         randomBytes, animateValue, entropyBits, strengthLabel, renderStrength,
-        secureIndex, securePick, secureShuffle
+        secureIndex, securePick, secureShuffle, confirmAction
     };
 })();

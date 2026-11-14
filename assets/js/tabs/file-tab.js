@@ -16,10 +16,14 @@ KX.tabs.file = (() => {
     function showProgress(text) {
         U.$('file-progress').style.display = 'block';
         U.$('progress-text').textContent = text;
+        const fill = U.$('progress-fill');
+        if (fill) fill.classList.add('indeterminate');
     }
 
     function hideProgress() {
         U.$('file-progress').style.display = 'none';
+        const fill = U.$('progress-fill');
+        if (fill) fill.classList.remove('indeterminate');
     }
 
     function bytesEqual(a, b) {

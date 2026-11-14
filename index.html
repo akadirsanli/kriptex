@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KRIPTEX v4.1 — Client-Side Encryption Suite</title>
+<title>KRIPTEX v4.2 — Client-Side Encryption Suite</title>
 <meta name="description" content="Serverless, browser-based encryption suite. AES-GCM, PBKDF2, streaming compression, hash tools and an encrypted local vault. No server, no tracking, no third-party requests.">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
-<meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#050705">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#05080a">
 <meta property="og:type" content="website">
 <meta property="og:title" content="KRIPTEX — client-side encryption suite">
 <meta property="og:description" content="AES-GCM text and file encryption, hashing, password generation and an encrypted local vault. Everything runs in your browser; nothing is uploaded.">
 
 <!-- Every asset is served from this origin. No CDNs, no web fonts, no telemetry. -->
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/vendor/fonts/inter.css">
 <link rel="stylesheet" href="assets/vendor/fonts/jetbrains-mono.css">
 <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
 <link rel="stylesheet" href="assets/css/base.css">
@@ -23,708 +24,1029 @@
 </head>
 <body>
 
-<!-- Background effect layers -->
-<div class="bg-fx">
-    <canvas id="fx-canvas"></canvas>
-    <div class="grid-bg"></div>
-</div>
-<div id="spotlight"></div>
-<div class="crt-overlay"></div>
-<div class="fx-vignette"></div>
-<div id="cursor-ring"></div>
+<a class="skip-link" href="#main">Skip to content</a>
 
-<!-- Shown instead of the app when the environment cannot support Web Crypto (see main.js) -->
+<!-- Ambient layers -->
+<div class="bg-layer" aria-hidden="true">
+    <canvas id="fx-canvas"></canvas>
+    <div class="bg-grid"></div>
+    <div class="crt-overlay"></div>
+    <div class="fx-vignette"></div>
+    <div id="spotlight"></div>
+</div>
+<div id="cursor-ring" aria-hidden="true"></div>
+
+<!-- Shown instead of the app when the environment cannot support Web Crypto -->
 <div id="boot-error" class="boot-error" hidden></div>
 
-<div class="container" id="app-shell">
+<div class="app" id="app-shell">
 
-    <!-- Header -->
-    <header class="header">
-        <div class="logo-row">
-            <span class="prompt-sign">root@kriptex:~#</span>
-            <h1 id="logo-title" data-text="KRIPTEX">KRIPTEX</h1>
-            <span class="version-tag">v4.1</span>
+    <!-- ==================== CONTROL RAIL ==================== -->
+    <aside class="rail" aria-label="Sections">
+        <div class="rail-brand">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                    <path d="M12 2.5 4.5 5.6v6.2c0 4.4 3.1 8.4 7.5 9.7 4.4-1.3 7.5-5.3 7.5-9.7V5.6L12 2.5Z"
+                          stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                    <path d="M9.2 11.8 11.4 14l3.6-3.9" stroke="currentColor" stroke-width="1.8"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+            <span class="brand-text">
+                <span class="brand-name" id="logo-title" data-text="KRIPTEX">KRIPTEX</span>
+                <span class="brand-version">v4.2</span>
+            </span>
         </div>
-        <p class="subtitle"><span id="typed-subtitle"></span><span class="caret"></span></p>
-        <div class="status-line">
-            <span class="live-dot"></span>
-            <span>[ AES-GCM &middot; PBKDF2 &middot; STREAMING-ZLIB &middot; 100% LOCAL &middot; NO SERVER ]</span>
-        </div>
-    </header>
 
-    <!-- Tab navigation -->
-    <nav class="tabs" id="tabs">
-        <button class="tab-btn active" data-tab="encrypt"><span class="tab-path">~/</span>encrypt</button>
-        <button class="tab-btn" data-tab="file"><span class="tab-path">~/</span>file</button>
-        <button class="tab-btn" data-tab="compress"><span class="tab-path">~/</span>compress</button>
-        <button class="tab-btn" data-tab="hash"><span class="tab-path">~/</span>hash</button>
-        <button class="tab-btn" data-tab="generator"><span class="tab-path">~/</span>generator</button>
-        <button class="tab-btn" data-tab="vault"><span class="tab-path">~/</span>vault</button>
-        <button class="tab-btn" data-tab="settings"><span class="tab-path">~/</span>settings</button>
-    </nav>
+        <nav class="rail-nav" id="tabs" role="tablist" aria-label="Tool sections">
+            <button class="tab-btn active" data-tab="encrypt" type="button">
+                <span class="tab-icon"><i class="fas fa-lock" aria-hidden="true"></i></span>
+                <span class="tab-text"><span class="tab-label">Encrypt</span><span class="tab-hint">text &amp; passphrase</span></span>
+            </button>
+            <button class="tab-btn" data-tab="file" type="button">
+                <span class="tab-icon"><i class="fas fa-file-shield" aria-hidden="true"></i></span>
+                <span class="tab-text"><span class="tab-label">Files</span><span class="tab-hint">.krx containers</span></span>
+            </button>
+            <button class="tab-btn" data-tab="compress" type="button">
+                <span class="tab-icon"><i class="fas fa-compress" aria-hidden="true"></i></span>
+                <span class="tab-text"><span class="tab-label">Compress</span><span class="tab-hint">streaming zlib</span></span>
+            </button>
+            <button class="tab-btn" data-tab="hash" type="button">
+                <span class="tab-icon"><i class="fas fa-fingerprint" aria-hidden="true"></i></span>
+                <span class="tab-text"><span class="tab-label">Hash</span><span class="tab-hint">digests &amp; recovery</span></span>
+            </button>
+            <button class="tab-btn" data-tab="generator" type="button">
+                <span class="tab-icon"><i class="fas fa-key" aria-hidden="true"></i></span>
+                <span class="tab-text"><span class="tab-label">Generate</span><span class="tab-hint">passwords &amp; phrases</span></span>
+            </button>
+            <button class="tab-btn" data-tab="vault" type="button">
+                <span class="tab-icon"><i class="fas fa-shield-halved" aria-hidden="true"></i></span>
+                <span class="tab-text"><span class="tab-label">Vault</span><span class="tab-hint">encrypted notes</span></span>
+            </button>
+            <button class="tab-btn" data-tab="settings" type="button">
+                <span class="tab-icon"><i class="fas fa-sliders" aria-hidden="true"></i></span>
+                <span class="tab-text"><span class="tab-label">Settings</span><span class="tab-hint">theme &amp; behaviour</span></span>
+            </button>
+        </nav>
 
-    <main class="content">
-
-        <!-- ==================== TAB: TEXT ENCRYPTION ==================== -->
-        <section id="tab-encrypt" class="tab-content active">
-            <div class="term-panel">
-                <div class="term-titlebar">
-                    <span class="term-dots"><i></i><i></i><i></i></span>
-                    <span class="term-path">kriptex@local:~/encrypt</span>
-                    <span class="term-badge">AES-GCM</span>
-                </div>
-                <div class="term-body">
-                    <div class="input-group">
-                        <label>&gt; input_text <span class="label-hint">— plaintext or ciphertext</span></label>
-                        <textarea id="enc-input" placeholder="Paste the text to encrypt or decrypt..." spellcheck="false"></textarea>
-                        <div class="char-count"><span id="enc-char-count">0</span> chars</div>
-                    </div>
-
-                    <div class="input-group">
-                        <label>&gt; passphrase</label>
-                        <div class="password-wrapper">
-                            <input type="password" id="enc-password" placeholder="Enter a strong passphrase..." autocomplete="off">
-                            <button class="icon-btn" id="enc-pass-toggle" title="Show / hide"><i class="fas fa-eye"></i></button>
-                            <button class="icon-btn gen-pass" id="enc-pass-gen" title="Generate passphrase"><i class="fas fa-dice"></i></button>
-                        </div>
-                        <div class="strength-container">
-                            <div class="strength-meter"><div class="strength-bar" id="strength-bar"></div></div>
-                            <span class="strength-text" id="strength-text">strength: —</span>
-                        </div>
-                    </div>
-
-                    <div class="input-group">
-                        <label>&gt; confirm_passphrase <span class="label-hint">— a typo here is unrecoverable</span></label>
-                        <div class="password-wrapper">
-                            <input type="password" id="enc-pass2" placeholder="Repeat the passphrase..." autocomplete="off">
-                        </div>
-                        <label class="checkbox-item">
-                            <input type="checkbox" id="enc-verify" checked>
-                            <span class="checkbox-custom"></span>
-                            verify by decrypting before output (recommended)
-                        </label>
-                    </div>
-
-                    <div class="input-group">
-                        <label>&gt; security_level <span class="label-hint">— select cipher profile</span></label>
-                        <div class="level-grid" id="level-grid">
-                            <button class="level-card" data-level="standard" type="button" aria-pressed="false">
-                                <span class="level-name">STANDARD</span>
-                                <span class="level-alg">AES-128-GCM</span>
-                                <span class="level-desc">PBKDF2 &times; 600k &middot; fast, everyday secrets</span>
-                            </button>
-                            <button class="level-card active" data-level="advanced" type="button" aria-pressed="true">
-                                <span class="level-name">ADVANCED</span>
-                                <span class="level-alg">AES-256-GCM</span>
-                                <span class="level-desc">PBKDF2 &times; 1M &middot; recommended balance</span>
-                            </button>
-                            <button class="level-card" data-level="maximum" type="button" aria-pressed="false">
-                                <span class="level-name">MAXIMUM</span>
-                                <span class="level-alg">AES-256-GCM</span>
-                                <span class="level-desc">PBKDF2 &times; 2M &middot; high-value data, slower</span>
-                            </button>
-                        </div>
-                        <div class="level-info" id="level-info"></div>
-                    </div>
-
-                    <div class="button-row">
-                        <button class="btn btn-primary" id="encrypt-btn">[ encrypt ]</button>
-                        <button class="btn btn-secondary" id="decrypt-btn">[ decrypt ]</button>
-                        <button class="btn btn-outline" id="enc-clear-btn">[ clear ]</button>
-                    </div>
-
-                    <div class="input-group output-group">
-                        <label>&gt; output</label>
-                        <textarea id="enc-output" readonly placeholder="Result will appear here..." spellcheck="false"></textarea>
-                        <button class="icon-btn output-copy" id="enc-copy-btn" title="Copy"><i class="fas fa-copy"></i></button>
-                        <button class="icon-btn output-download" id="enc-download-btn" title="Download"><i class="fas fa-download"></i></button>
-                    </div>
-
-                    <div class="stats-grid">
-                        <div class="stat-cell"><span class="stat-label">original</span><span class="stat-value" id="stat-original">—</span></div>
-                        <div class="stat-cell"><span class="stat-label">compressed</span><span class="stat-value" id="stat-compressed">—</span></div>
-                        <div class="stat-cell"><span class="stat-label">ratio</span><span class="stat-value" id="stat-ratio">—</span></div>
-                        <div class="stat-cell"><span class="stat-label">time</span><span class="stat-value" id="stat-time">—</span></div>
-                    </div>
-                </div>
+        <div class="rail-foot">
+            <span class="status-pill"><span class="status-dot" aria-hidden="true"></span> offline · no network</span>
+            <div class="theme-dots" role="group" aria-label="Colour theme">
+                <button class="theme-dot active" data-theme="fsociety" type="button" title="fsociety" aria-label="fsociety theme"></button>
+                <button class="theme-dot" data-theme="darkarmy" type="button" title="darkarmy" aria-label="darkarmy theme"></button>
+                <button class="theme-dot" data-theme="ecorp" type="button" title="ecorp" aria-label="ecorp theme"></button>
+                <button class="theme-dot" data-theme="whiterose" type="button" title="whiterose" aria-label="whiterose theme"></button>
             </div>
-        </section>
+            <p class="rail-note">Nothing leaves this tab. No account, no server, no telemetry.</p>
+        </div>
+    </aside>
 
-        <!-- ==================== TAB: FILE ENCRYPTION ==================== -->
-        <section id="tab-file" class="tab-content">
-            <div class="term-panel">
-                <div class="term-titlebar">
-                    <span class="term-dots"><i></i><i></i><i></i></span>
-                    <span class="term-path">kriptex@local:~/file</span>
-                    <span class="term-badge">.KRX</span>
-                </div>
-                <div class="term-body">
-                    <div class="input-group">
-                        <label>&gt; target_file</label>
-                        <div class="drop-zone" id="drop-zone">
-                            <i class="fas fa-cloud-upload-alt drop-icon"></i>
-                            <p>Drop a file here or click to browse</p>
-                            <span class="drop-hint">any file type &middot; processed locally</span>
-                            <input type="file" id="file-input" hidden>
+    <!-- ==================== WORKSPACE ==================== -->
+    <main class="workspace" id="main">
+        <div class="workspace-inner">
+
+            <!-- ---------------- ENCRYPT ---------------- -->
+            <section id="tab-encrypt" class="tab-content active" role="tabpanel" aria-label="Encrypt text">
+                <header class="page-head">
+                    <div class="row-between">
+                        <p class="eyebrow">encrypt</p>
+                        <div class="chips">
+                            <span class="chip"><i class="fas fa-shield-halved" aria-hidden="true"></i> AES-GCM</span>
+                            <span class="chip">PBKDF2</span>
+                            <span class="chip">local only</span>
                         </div>
-                        <div class="file-info" id="file-info" style="display:none;">
-                            <div class="file-preview">
-                                <i class="fas fa-file"></i>
-                                <span id="file-name">—</span>
-                                <span class="file-size" id="file-size">—</span>
-                                <button class="icon-btn" id="clear-file" title="Remove file"><i class="fas fa-times"></i></button>
+                    </div>
+                    <h1 class="page-title">Seal a message</h1>
+                    <p class="lede">Type a secret, choose how hard the key should be to crack, and get back a
+                    self-contained blob. The header travels inside the ciphertext's authentication tag, so nobody
+                    can weaken the parameters on the way.</p>
+                </header>
+
+                <div class="split">
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Message</h2>
+                                <p class="card-sub">Plaintext to seal, or a blob to open.</p>
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="input-group">
-                        <label>&gt; file_passphrase</label>
-                        <div class="password-wrapper">
-                            <input type="password" id="file-password" placeholder="Set a passphrase for this file..." autocomplete="off">
-                            <button class="icon-btn" id="toggle-file-pass" title="Show / hide"><i class="fas fa-eye"></i></button>
-                        </div>
-                    </div>
-
-                    <div class="input-group">
-                        <label>&gt; confirm_passphrase <span class="label-hint">— a typo here is unrecoverable</span></label>
-                        <div class="password-wrapper">
-                            <input type="password" id="file-password2" placeholder="Repeat the passphrase..." autocomplete="off">
-                        </div>
-                    </div>
-
-                    <div class="level-note">
-                        <i class="fas fa-circle-info"></i>
-                        <div>Files are sealed with AES-256-GCM (PBKDF2 &times; 600k) into the <code>.krx</code> container:
-                        <code>magic "KRXFILE2" | version | cipher | kdf | iterations | salt | iv</code> used as authenticated
-                        data, then <code>AES-GCM(filename, size, contents)</code>. The filename is encrypted with the file.</div>
-                    </div>
-
-                    <div class="button-row">
-                        <button class="btn btn-primary" id="file-encrypt-btn">[ encrypt_file ]</button>
-                        <button class="btn btn-secondary" id="file-decrypt-btn">[ decrypt_file ]</button>
-                    </div>
-
-                    <div class="progress-container" id="file-progress" style="display:none;">
-                        <div class="progress-bar"><div class="progress-fill indeterminate" id="progress-fill"></div></div>
-                        <span class="progress-text" id="progress-text">processing...</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== TAB: COMPRESSION ==================== -->
-        <section id="tab-compress" class="tab-content">
-            <div class="term-panel">
-                <div class="term-titlebar">
-                    <span class="term-dots"><i></i><i></i><i></i></span>
-                    <span class="term-path">kriptex@local:~/compress</span>
-                    <span class="term-badge" id="worker-badge">STREAMING</span>
-                </div>
-                <div class="term-body">
-                    <div class="dual-grid">
-                        <div class="panel-col">
-                            <div class="input-group">
-                                <label>&gt; source_text <span class="label-hint">— millions of chars OK, runs off-thread</span></label>
-                                <textarea id="cmp-input" placeholder="Paste text to compress... (hundreds of pages supported — streamed in a Web Worker, UI never freezes)" spellcheck="false"></textarea>
-                                <div class="char-count"><span id="cmp-input-count">0</span> chars</div>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="enc-input">Input</label>
+                                    <span class="field-hint">utf-8 · any length</span>
+                                </div>
+                                <textarea id="enc-input" placeholder="Paste the text to encrypt or decrypt..." spellcheck="false"></textarea>
+                                <div class="field-foot"><span id="enc-char-count">0</span> characters</div>
                             </div>
 
-                            <div class="input-group">
-                                <label>&gt; profile</label>
-                                <div class="mode-row" id="cmp-modes">
-                                    <button class="mode-btn active" data-mode="balanced" type="button">balanced<small>level 6</small></button>
-                                    <button class="mode-btn" data-mode="max" type="button">maximum<small>level 9</small></button>
-                                    <button class="mode-btn" data-mode="fast" type="button">fast<small>level 1</small></button>
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="enc-password">Passphrase</label>
+                                    <span class="field-hint">never stored</span>
+                                </div>
+                                <div class="input-row">
+                                    <input type="password" id="enc-password" placeholder="A long, unique passphrase..." autocomplete="off">
+                                    <button class="icon-btn" id="enc-pass-toggle" type="button" title="Show / hide" aria-label="Show or hide passphrase"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                                    <button class="icon-btn" id="enc-pass-gen" type="button" title="Generate passphrase" aria-label="Generate passphrase"><i class="fas fa-dice" aria-hidden="true"></i></button>
+                                </div>
+                                <div class="strength-container">
+                                    <div class="strength-meter"><div class="strength-bar" id="strength-bar"></div></div>
+                                    <span class="strength-text" id="strength-text">strength: —</span>
                                 </div>
                             </div>
 
-                            <button class="btn btn-primary btn-full" id="compress-btn">[ compress ]</button>
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="enc-pass2">Confirm passphrase</label>
+                                    <span class="field-hint">a typo is unrecoverable</span>
+                                </div>
+                                <input type="password" id="enc-pass2" placeholder="Repeat the passphrase..." autocomplete="off">
+                                <label class="checkbox-item">
+                                    <input type="checkbox" id="enc-verify" checked>
+                                    <span class="checkbox-custom" aria-hidden="true"></span>
+                                    Verify by decrypting before showing the result
+                                </label>
+                            </div>
 
-                            <div class="drop-zone small" id="cmp-file-drop">
-                                <i class="fas fa-file-arrow-down drop-icon"></i>
-                                <p>Drop a <code>.txt</code> file — auto-compresses to <code>.z</code></p>
+                            <div class="field">
+                                <div class="field-head">
+                                    <label>Security profile</label>
+                                    <span class="field-hint">key-stretching cost</span>
+                                </div>
+                                <div class="level-grid" id="level-grid">
+                                    <button class="level-card" data-level="standard" type="button" aria-pressed="false">
+                                        <span class="level-name">STANDARD</span>
+                                        <span class="level-alg">AES-128-GCM</span>
+                                        <span class="level-desc">600k iterations · everyday secrets</span>
+                                    </button>
+                                    <button class="level-card active" data-level="advanced" type="button" aria-pressed="true">
+                                        <span class="level-name">ADVANCED</span>
+                                        <span class="level-alg">AES-256-GCM</span>
+                                        <span class="level-desc">1M iterations · recommended</span>
+                                    </button>
+                                    <button class="level-card" data-level="maximum" type="button" aria-pressed="false">
+                                        <span class="level-name">MAXIMUM</span>
+                                        <span class="level-alg">AES-256-GCM</span>
+                                        <span class="level-desc">2M iterations · high value</span>
+                                    </button>
+                                </div>
+                                <div class="level-info" id="level-info"></div>
+                            </div>
+                        </div>
+                        <footer class="card-foot">
+                            <span class="card-foot-note">AES-GCM authenticates, so tampering fails loudly.</span>
+                        </footer>
+                    </section>
+
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Sealed output</h2>
+                                <p class="card-sub">KRX5 envelope · base64url</p>
+                            </div>
+                            <span class="badge">authenticated</span>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="enc-output">Result</label>
+                                    <span class="field-hint">copy this anywhere</span>
+                                </div>
+                                <div class="input-wrap">
+                                    <textarea id="enc-output" readonly placeholder="The sealed blob appears here..." spellcheck="false"></textarea>
+                                    <div class="input-buttons">
+                                        <button class="icon-btn" id="enc-copy-btn" type="button" title="Copy" aria-label="Copy output"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                                        <button class="icon-btn" id="enc-download-btn" type="button" title="Download" aria-label="Download output"><i class="fas fa-download" aria-hidden="true"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stats">
+                                <div class="stat"><span class="stat-label">original</span><span class="stat-value" id="stat-original">—</span></div>
+                                <div class="stat"><span class="stat-label">compressed</span><span class="stat-value" id="stat-compressed">—</span></div>
+                                <div class="stat"><span class="stat-label">saved</span><span class="stat-value" id="stat-ratio">—</span></div>
+                                <div class="stat"><span class="stat-label">time</span><span class="stat-value" id="stat-time">—</span></div>
+                            </div>
+                        </div>
+                        <footer class="card-foot">
+                            <button class="btn btn-primary" id="encrypt-btn" type="button">Encrypt</button>
+                            <button class="btn btn-secondary" id="decrypt-btn" type="button">Decrypt</button>
+                            <button class="btn btn-ghost" id="enc-clear-btn" type="button">Clear</button>
+                        </footer>
+                    </section>
+                </div>
+            </section>
+
+            <!-- ---------------- FILES ---------------- -->
+            <section id="tab-file" class="tab-content" role="tabpanel" aria-label="Encrypt files">
+                <header class="page-head">
+                    <div class="row-between">
+                        <p class="eyebrow">files</p>
+                        <div class="chips">
+                            <span class="chip"><i class="fas fa-file-shield" aria-hidden="true"></i> .krx</span>
+                            <span class="chip">AES-256-GCM</span>
+                        </div>
+                    </div>
+                    <h1 class="page-title">Seal a file</h1>
+                    <p class="lede">Any file becomes a single <code>.krx</code> container. The name and size travel
+                    inside the ciphertext, and the header that describes how to open it is authenticated too.</p>
+                </header>
+
+                <div class="split">
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Container</h2>
+                                <p class="card-sub">Seal or open a file in place.</p>
+                            </div>
+                            <span class="badge" id="worker-badge">.krx</span>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="field">
+                                <div class="field-head">
+                                    <label>Select file</label>
+                                    <span class="field-hint">stays on this device</span>
+                                </div>
+                                <div class="dropzone" id="drop-zone">
+                                    <span class="dz-icon"><i class="fas fa-file-import" aria-hidden="true"></i></span>
+                                    <p>Drop a file here, or click to browse</p>
+                                    <small>any type · sealed locally</small>
+                                    <input type="file" id="file-input" hidden>
+                                </div>
+                                <div class="file-chip" id="file-info" style="display:none;">
+                                    <i class="fas fa-file" aria-hidden="true"></i>
+                                    <span class="file-name" id="file-name">—</span>
+                                    <span class="file-size" id="file-size">—</span>
+                                    <button class="icon-btn" id="clear-file" type="button" title="Remove file" aria-label="Remove file"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="file-password">Passphrase</label>
+                                    <span class="field-hint">required to reopen</span>
+                                </div>
+                                <div class="input-row">
+                                    <input type="password" id="file-password" placeholder="Set a passphrase for this file..." autocomplete="off">
+                                    <button class="icon-btn" id="toggle-file-pass" type="button" title="Show / hide" aria-label="Show or hide passphrase"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="file-password2">Confirm passphrase</label>
+                                    <span class="field-hint">a typo is unrecoverable</span>
+                                </div>
+                                <input type="password" id="file-password2" placeholder="Repeat the passphrase..." autocomplete="off">
+                            </div>
+
+                            <div class="progress" id="file-progress" style="display:none;">
+                                <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+                                <span class="progress-text" id="progress-text">processing...</span>
+                            </div>
+                        </div>
+                        <footer class="card-foot">
+                            <button class="btn btn-primary" id="file-encrypt-btn" type="button">Seal file</button>
+                            <button class="btn btn-secondary" id="file-decrypt-btn" type="button">Open container</button>
+                        </footer>
+                    </section>
+
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>How it is stored</h2>
+                                <p class="card-sub">KRXFILE2 layout</p>
+                            </div>
+                        </header>
+                        <div class="card-body stack">
+                            <ol class="spec-list">
+                                <li><span>magic</span> “KRXFILE2” · 8 bytes</li>
+                                <li><span>version</span> 1 byte · cipher &amp; KDF ids</li>
+                                <li><span>cost</span> 4-byte iteration count</li>
+                                <li><span>salt / iv</span> 16 + 12 bytes</li>
+                                <li><span>payload</span> AES-GCM(name, size, bytes)</li>
+                            </ol>
+                            <div class="callout">
+                                <i class="fas fa-circle-info" aria-hidden="true"></i>
+                                <span>Bytes 0–43 are authenticated as additional data. Changing the iteration
+                                count or salt breaks the tag instead of producing garbage.</span>
+                            </div>
+                            <div class="callout callout-warn">
+                                <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+                                <span>Files are read into the tab's memory before sealing. Very large files
+                                (multi-gigabyte) may exhaust it; chunked streaming is on the roadmap.</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <!-- ---------------- COMPRESS ---------------- -->
+            <section id="tab-compress" class="tab-content" role="tabpanel" aria-label="Compress">
+                <header class="page-head">
+                    <div class="row-between">
+                        <p class="eyebrow">compress</p>
+                        <div class="chips">
+                            <span class="chip"><i class="fas fa-bolt" aria-hidden="true"></i> web worker</span>
+                            <span class="chip">deflate</span>
+                        </div>
+                    </div>
+                    <h1 class="page-title">Pack it smaller</h1>
+                    <p class="lede">DEFLATE runs in a worker thread, so the interface keeps moving while a large
+                    payload is squeezed. Inflating is capped, so a hostile archive cannot fill memory.</p>
+                </header>
+
+                <div class="split">
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Source</h2>
+                                <p class="card-sub">Text, or a .txt file.</p>
+                            </div>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="cmp-input">Text</label>
+                                    <span class="field-hint">streamed in 4 MB chunks</span>
+                                </div>
+                                <textarea id="cmp-input" placeholder="Paste text to compress..." spellcheck="false"></textarea>
+                                <div class="field-foot"><span id="cmp-input-count">0</span> characters</div>
+                            </div>
+
+                            <div class="field">
+                                <div class="field-head">
+                                    <label>Level</label>
+                                    <span class="field-hint">speed vs. ratio</span>
+                                </div>
+                                <div class="seg" id="cmp-modes">
+                                    <button class="mode-btn active" data-mode="balanced" type="button">balanced<small>6</small></button>
+                                    <button class="mode-btn" data-mode="max" type="button">maximum<small>9</small></button>
+                                    <button class="mode-btn" data-mode="fast" type="button">fast<small>1</small></button>
+                                </div>
+                            </div>
+
+                            <div class="dropzone small" id="cmp-file-drop">
+                                <span class="dz-icon"><i class="fas fa-file-arrow-down" aria-hidden="true"></i></span>
+                                <p>Drop a <code>.txt</code> file — compresses to <code>.z</code></p>
                                 <input type="file" id="cmp-file-input" accept=".txt,.text,.log,.md,.csv,.json,.xml,.html" hidden>
                             </div>
                         </div>
+                        <footer class="card-foot">
+                            <button class="btn btn-primary btn-full" id="compress-btn" type="button">Compress</button>
+                        </footer>
+                    </section>
 
-                        <div class="panel-col">
-                            <div class="input-group">
-                                <label>&gt; packed_output <span class="label-hint">— base64</span></label>
-                                <textarea id="cmp-output" readonly placeholder="Compressed payload appears here..." spellcheck="false"></textarea>
-                                <div class="char-count"><span id="cmp-output-count">0</span> chars</div>
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Packed output</h2>
+                                <p class="card-sub">Base64, or raw bytes.</p>
+                            </div>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="cmp-output">Result</label>
+                                    <span class="field-hint">copy or download</span>
+                                </div>
+                                <textarea id="cmp-output" readonly placeholder="The packed payload appears here..." spellcheck="false"></textarea>
+                                <div class="field-foot"><span id="cmp-output-count">0</span> characters</div>
                             </div>
 
-                            <div class="button-row wrap">
-                                <button class="btn btn-secondary" id="cmp-copy-btn">[ copy ]</button>
-                                <button class="btn btn-secondary" id="cmp-download-btn">[ .txt ]</button>
-                                <button class="btn btn-secondary" id="cmp-download-bin-btn">[ .z ]</button>
-                                <button class="btn btn-outline" id="decompress-btn">[ decompress ]</button>
+                            <div class="stats six">
+                                <div class="stat"><span class="stat-label">original</span><span class="stat-value" id="cmp-stat-original">—</span></div>
+                                <div class="stat"><span class="stat-label">packed</span><span class="stat-value" id="cmp-stat-compressed">—</span></div>
+                                <div class="stat"><span class="stat-label">saved</span><span class="stat-value" id="cmp-stat-ratio">—</span></div>
+                                <div class="stat"><span class="stat-label">time</span><span class="stat-value" id="cmp-stat-time">—</span></div>
+                                <div class="stat"><span class="stat-label">speed</span><span class="stat-value" id="cmp-stat-speed">—</span></div>
+                                <div class="stat"><span class="stat-label">pages</span><span class="stat-value" id="cmp-stat-pages">—</span></div>
                             </div>
 
-                            <div class="drop-zone small" id="dcmp-file-drop">
-                                <i class="fas fa-file-arrow-up drop-icon"></i>
-                                <p>Drop a <code>.z</code> / base64 file — auto-decompresses</p>
-                                <input type="file" id="dcmp-file-input" accept=".z,.zlib,.b64,.txt" hidden>
-                            </div>
-
-                            <div class="progress-container" id="cmp-progress" style="display:none;">
-                                <div class="progress-bar"><div class="progress-fill" id="cmp-progress-fill"></div></div>
+                            <div class="progress" id="cmp-progress" style="display:none;">
+                                <div class="progress-track"><div class="progress-fill" id="cmp-progress-fill"></div></div>
                                 <span class="progress-text" id="cmp-progress-text">working...</span>
                             </div>
-                        </div>
-                    </div>
 
-                    <div class="stats-grid six">
-                        <div class="stat-cell"><span class="stat-label">original</span><span class="stat-value" id="cmp-stat-original">—</span></div>
-                        <div class="stat-cell"><span class="stat-label">packed</span><span class="stat-value" id="cmp-stat-compressed">—</span></div>
-                        <div class="stat-cell"><span class="stat-label">saved</span><span class="stat-value" id="cmp-stat-ratio">—</span></div>
-                        <div class="stat-cell"><span class="stat-label">time</span><span class="stat-value" id="cmp-stat-time">—</span></div>
-                        <div class="stat-cell"><span class="stat-label">speed</span><span class="stat-value" id="cmp-stat-speed">—</span></div>
-                        <div class="stat-cell"><span class="stat-label">~pages</span><span class="stat-value" id="cmp-stat-pages">—</span></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== TAB: HASH TOOLS ==================== -->
-        <section id="tab-hash" class="tab-content">
-            <div class="stack">
-                <div class="term-panel">
-                    <div class="term-titlebar">
-                        <span class="term-dots"><i></i><i></i><i></i></span>
-                        <span class="term-path">kriptex@local:~/hash --text</span>
-                    </div>
-                    <div class="term-body">
-                        <div class="input-group">
-                            <label>&gt; input_text</label>
-                            <textarea id="hash-input" placeholder="Text to hash..." spellcheck="false"></textarea>
-                        </div>
-                        <div class="input-group">
-                            <label>&gt; algorithm</label>
-                            <select id="hash-algorithm" class="styled-select">
-                                <option value="SHA-256" selected>SHA-256</option>
-                                <option value="SHA-1">SHA-1 (weak)</option>
-                                <option value="SHA-224">SHA-224</option>
-                                <option value="SHA-384">SHA-384</option>
-                                <option value="SHA-512">SHA-512</option>
-                                <option value="Keccak-256">Keccak-256 (not FIPS SHA3)</option>
-                                <option value="Keccak-512">Keccak-512 (not FIPS SHA3)</option>
-                                <option value="MD5">MD5 (weak)</option>
-                                <option value="RIPEMD-160">RIPEMD-160</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <div class="input-with-buttons">
-                                <input type="text" id="hash-output" readonly placeholder="digest..." spellcheck="false">
-                                <button class="btn btn-icon btn-primary" id="hash-calculate-btn" title="Compute"><i class="fas fa-calculator"></i></button>
-                                <button class="btn btn-icon btn-secondary" id="hash-copy-btn" title="Copy"><i class="fas fa-copy"></i></button>
+                            <div class="dropzone small" id="dcmp-file-drop">
+                                <span class="dz-icon"><i class="fas fa-file-arrow-up" aria-hidden="true"></i></span>
+                                <p>Drop a <code>.z</code> or base64 file — restores the text</p>
+                                <input type="file" id="dcmp-file-input" accept=".z,.zz,.zlib,.b64,.txt" hidden>
                             </div>
                         </div>
-                    </div>
+                        <footer class="card-foot">
+                            <button class="btn btn-secondary" id="cmp-copy-btn" type="button">Copy</button>
+                            <button class="btn btn-secondary" id="cmp-download-btn" type="button">.txt</button>
+                            <button class="btn btn-secondary" id="cmp-download-bin-btn" type="button">.z</button>
+                            <button class="btn btn-outline" id="decompress-btn" type="button">Decompress</button>
+                        </footer>
+                    </section>
                 </div>
+            </section>
 
-                <div class="term-panel">
-                    <div class="term-titlebar">
-                        <span class="term-dots"><i></i><i></i><i></i></span>
-                        <span class="term-path">kriptex@local:~/hash --file</span>
+            <!-- ---------------- HASH ---------------- -->
+            <section id="tab-hash" class="tab-content" role="tabpanel" aria-label="Hashing">
+                <header class="page-head">
+                    <div class="row-between">
+                        <p class="eyebrow">hash</p>
+                        <div class="chips">
+                            <span class="chip"><i class="fas fa-fingerprint" aria-hidden="true"></i> digests</span>
+                            <span class="chip">dictionary recovery</span>
+                        </div>
                     </div>
-                    <div class="term-body">
-                        <div class="input-group">
-                            <div class="drop-zone small" id="hash-drop-zone">
-                                <i class="fas fa-file-import drop-icon"></i>
+                    <h1 class="page-title">Fingerprint anything</h1>
+                    <p class="lede">Digest text or a whole file, compare two digests, and—when the source is a
+                    weak password—try to recover it from a wordlist without sending a byte anywhere.</p>
+                </header>
+
+                <div class="split">
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Text digest</h2>
+                                <p class="card-sub">SHA-2, Keccak, RIPEMD, MD5.</p>
+                            </div>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="hash-input">Text</label>
+                                    <span class="field-hint">utf-8</span>
+                                </div>
+                                <textarea id="hash-input" class="short" placeholder="Text to hash..." spellcheck="false"></textarea>
+                            </div>
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="hash-algorithm">Algorithm</label>
+                                    <span class="field-hint">SHA-1 and MD5 are broken</span>
+                                </div>
+                                <select id="hash-algorithm">
+                                    <option value="SHA-256" selected>SHA-256</option>
+                                    <option value="SHA-1">SHA-1 (weak)</option>
+                                    <option value="SHA-224">SHA-224</option>
+                                    <option value="SHA-384">SHA-384</option>
+                                    <option value="SHA-512">SHA-512</option>
+                                    <option value="Keccak-256">Keccak-256 (not FIPS SHA3)</option>
+                                    <option value="Keccak-512">Keccak-512 (not FIPS SHA3)</option>
+                                    <option value="MD5">MD5 (weak)</option>
+                                    <option value="RIPEMD-160">RIPEMD-160</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <div class="field-head"><label for="hash-output">Digest</label></div>
+                                <div class="input-row">
+                                    <input type="text" id="hash-output" readonly placeholder="digest..." spellcheck="false">
+                                    <button class="icon-btn" id="hash-calculate-btn" type="button" title="Compute" aria-label="Compute digest"><i class="fas fa-calculator" aria-hidden="true"></i></button>
+                                    <button class="icon-btn" id="hash-copy-btn" type="button" title="Copy" aria-label="Copy digest"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>File digest</h2>
+                                <p class="card-sub">Constant memory, 4 MB slices.</p>
+                            </div>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="dropzone small" id="hash-drop-zone">
+                                <span class="dz-icon"><i class="fas fa-file-import" aria-hidden="true"></i></span>
                                 <p>Drop a file or click to browse</p>
                                 <input type="file" id="hash-file-input" hidden>
                             </div>
-                            <div class="file-info" id="hash-file-info" style="display:none;">
-                                <div class="file-preview">
-                                    <i class="fas fa-file"></i>
-                                    <span id="hash-file-name">—</span>
-                                    <span class="file-size" id="hash-file-size">—</span>
+                            <div class="file-chip" id="hash-file-info" style="display:none;">
+                                <i class="fas fa-file" aria-hidden="true"></i>
+                                <span class="file-name" id="hash-file-name">—</span>
+                                <span class="file-size" id="hash-file-size">—</span>
+                            </div>
+                            <div class="field">
+                                <div class="field-head"><label for="file-hash-algorithm">Algorithm</label></div>
+                                <select id="file-hash-algorithm">
+                                    <option value="SHA-256" selected>SHA-256</option>
+                                    <option value="SHA-1">SHA-1 (weak)</option>
+                                    <option value="SHA-384">SHA-384</option>
+                                    <option value="SHA-512">SHA-512</option>
+                                    <option value="Keccak-256">Keccak-256</option>
+                                    <option value="RIPEMD-160">RIPEMD-160</option>
+                                    <option value="MD5">MD5 (weak)</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <div class="field-head"><label for="file-hash-output">Digest</label></div>
+                                <div class="input-row">
+                                    <input type="text" id="file-hash-output" readonly placeholder="file digest..." spellcheck="false">
+                                    <button class="icon-btn" id="file-hash-calculate-btn" type="button" title="Compute" aria-label="Compute file digest"><i class="fas fa-calculator" aria-hidden="true"></i></button>
+                                    <button class="icon-btn" id="file-hash-copy-btn" type="button" title="Copy" aria-label="Copy file digest"><i class="fas fa-copy" aria-hidden="true"></i></button>
                                 </div>
                             </div>
                         </div>
-                        <div class="input-group">
-                            <label>&gt; algorithm</label>
-                            <select id="file-hash-algorithm" class="styled-select">
-                                <option value="SHA-256" selected>SHA-256</option>
-                                <option value="SHA-1">SHA-1 (weak)</option>
-                                <option value="SHA-384">SHA-384</option>
-                                <option value="SHA-512">SHA-512</option>
-                                <option value="Keccak-256">Keccak-256</option>
-                                <option value="RIPEMD-160">RIPEMD-160</option>
-                                <option value="MD5">MD5 (weak)</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <div class="input-with-buttons">
-                                <input type="text" id="file-hash-output" readonly placeholder="file digest... (streamed in 4 MB slices)" spellcheck="false">
-                                <button class="btn btn-icon btn-primary" id="file-hash-calculate-btn" title="Compute"><i class="fas fa-calculator"></i></button>
-                                <button class="btn btn-icon btn-secondary" id="file-hash-copy-btn" title="Copy"><i class="fas fa-copy"></i></button>
-                            </div>
-                        </div>
-                    </div>
+                    </section>
                 </div>
 
-                <div class="term-panel">
-                    <div class="term-titlebar">
-                        <span class="term-dots"><i></i><i></i><i></i></span>
-                        <span class="term-path">kriptex@local:~/hash --compare</span>
-                    </div>
-                    <div class="term-body">
+                <section class="card mt-5">
+                    <header class="card-head">
+                        <div>
+                            <h2>Compare</h2>
+                            <p class="card-sub">Case and whitespace are ignored.</p>
+                        </div>
+                    </header>
+                    <div class="card-body stack">
                         <div class="compare-grid">
-                            <input type="text" id="hash1" placeholder="first digest..." class="styled-input" spellcheck="false">
-                            <input type="text" id="hash2" placeholder="second digest..." class="styled-input" spellcheck="false">
+                            <input type="text" id="hash1" placeholder="first digest..." spellcheck="false">
+                            <input type="text" id="hash2" placeholder="second digest..." spellcheck="false">
                         </div>
-                        <div class="compare-result" id="comparison-result"><span class="muted">awaiting input</span></div>
-                        <button class="btn btn-outline" id="compare-btn">[ compare ]</button>
+                        <div class="compare-result" id="comparison-result"><span class="subtle">awaiting input</span></div>
                     </div>
-                </div>
+                    <footer class="card-foot">
+                        <button class="btn btn-outline" id="compare-btn" type="button">Compare</button>
+                    </footer>
+                </section>
 
-                <div class="term-panel">
-                    <div class="term-titlebar">
-                        <span class="term-dots"><i></i><i></i><i></i></span>
-                        <span class="term-path">kriptex@local:~/hash --recover</span>
-                        <span class="term-badge">DICTIONARY</span>
-                    </div>
-                    <div class="term-body">
-                        <div class="level-note">
-                            <i class="fas fa-circle-info"></i>
-                            <div>Hashes are one-way — there is no "decrypt". Recovery works by hashing dictionary candidates until one matches. It only succeeds if the plaintext exists in the wordlist. Runs in a Web Worker with live rate reporting.</div>
+                <section class="card mt-5">
+                    <header class="card-head">
+                        <div>
+                            <h2>Dictionary recovery</h2>
+                            <p class="card-sub">Hashes are one-way; this only works when the plaintext is guessable.</p>
                         </div>
-                        <div class="input-group">
-                            <label>&gt; target_hash</label>
-                            <div class="input-with-buttons">
-                                <input type="text" id="crack-hash-input" placeholder="Paste the digest to recover..." spellcheck="false">
-                                <button class="btn btn-icon btn-secondary" id="crack-detect-btn" title="Detect algorithm from length"><i class="fas fa-magnifying-glass"></i></button>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>&gt; algorithm</label>
-                            <select id="crack-algorithm" class="styled-select">
-                                <option value="MD5">MD5</option>
-                                <option value="SHA-1">SHA-1</option>
-                                <option value="SHA-256" selected>SHA-256</option>
-                                <option value="SHA-224">SHA-224</option>
-                                <option value="SHA-384">SHA-384</option>
-                                <option value="SHA-512">SHA-512</option>
-                                <option value="Keccak-256">Keccak-256</option>
-                                <option value="Keccak-512">Keccak-512</option>
-                                <option value="RIPEMD-160">RIPEMD-160</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="crack-builtin" checked>
-                                <span class="checkbox-custom"></span>
-                                Include built-in common-password list (~160 entries)
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" id="crack-mutate" checked>
-                                <span class="checkbox-custom"></span>
-                                Try common mutations (case, digits 0-99, !@# suffixes)
-                            </label>
-                        </div>
-                        <div class="input-group">
-                            <div class="drop-zone small" id="crack-drop">
-                                <i class="fas fa-book drop-icon"></i>
-                                <p>Drop a custom wordlist (.txt, one candidate per line)</p>
-                                <input type="file" id="crack-wordlist" accept=".txt,.lst,.dic" hidden>
-                            </div>
-                            <div class="file-info" id="crack-wordlist-info" style="display:none;">
-                                <div class="file-preview">
-                                    <i class="fas fa-book-open"></i>
-                                    <span id="crack-wordlist-name">—</span>
+                        <span class="badge badge-warn">abuse this only on your own data</span>
+                    </header>
+                    <div class="card-body">
+                        <div class="split">
+                            <div class="stack">
+                                <div class="field">
+                                    <div class="field-head">
+                                        <label for="crack-hash-input">Target digest</label>
+                                        <span class="field-hint">hex</span>
+                                    </div>
+                                    <div class="input-row">
+                                        <input type="text" id="crack-hash-input" placeholder="Paste the digest to recover..." spellcheck="false">
+                                        <button class="icon-btn" id="crack-detect-btn" type="button" title="Detect algorithm" aria-label="Detect algorithm from length"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></button>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="field-head"><label for="crack-algorithm">Algorithm</label></div>
+                                    <select id="crack-algorithm">
+                                        <option value="MD5">MD5</option>
+                                        <option value="SHA-1">SHA-1</option>
+                                        <option value="SHA-256" selected>SHA-256</option>
+                                        <option value="SHA-224">SHA-224</option>
+                                        <option value="SHA-384">SHA-384</option>
+                                        <option value="SHA-512">SHA-512</option>
+                                        <option value="Keccak-256">Keccak-256</option>
+                                        <option value="Keccak-512">Keccak-512</option>
+                                        <option value="RIPEMD-160">RIPEMD-160</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <div class="field-head"><label>Options</label></div>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" id="crack-builtin" checked>
+                                        <span class="checkbox-custom" aria-hidden="true"></span>
+                                        Include the built-in common-password list
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" id="crack-mutate" checked>
+                                        <span class="checkbox-custom" aria-hidden="true"></span>
+                                        Try mutations (case, 0–99, !@# suffixes)
+                                    </label>
+                                </div>
+                                <div class="dropzone small" id="crack-drop">
+                                    <span class="dz-icon"><i class="fas fa-book" aria-hidden="true"></i></span>
+                                    <p>Drop a wordlist (.txt, one candidate per line)</p>
+                                    <input type="file" id="crack-wordlist" accept=".txt,.lst,.dic" hidden>
+                                </div>
+                                <div class="file-chip" id="crack-wordlist-info" style="display:none;">
+                                    <i class="fas fa-book-open" aria-hidden="true"></i>
+                                    <span class="file-name" id="crack-wordlist-name">—</span>
                                     <span class="file-size" id="crack-wordlist-size">—</span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="button-row">
-                            <button class="btn btn-primary" id="crack-start-btn">[ start_recovery ]</button>
-                            <button class="btn btn-secondary" id="crack-cancel-btn" disabled>[ abort ]</button>
-                        </div>
-                        <div class="progress-container" id="crack-progress" style="display:none;">
-                            <div class="progress-bar"><div class="progress-fill" id="crack-progress-fill"></div></div>
-                            <span class="progress-text" id="crack-progress-text">—</span>
-                        </div>
-                        <div class="crack-result" id="crack-result" style="display:none;"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <!-- ==================== TAB: GENERATOR ==================== -->
-        <section id="tab-generator" class="tab-content">
-            <div class="dual-grid">
-                <div class="term-panel">
-                    <div class="term-titlebar">
-                        <span class="term-dots"><i></i><i></i><i></i></span>
-                        <span class="term-path">kriptex@local:~/generator --password</span>
-                    </div>
-                    <div class="term-body">
-                        <div class="input-group">
-                            <label>&gt; length: <span id="len-val" class="accent">16</span></label>
-                            <input type="range" id="pass-length" min="8" max="128" value="16" class="range-slider">
-                            <div class="range-labels"><span>8</span><span>64</span><span>128</span></div>
-                        </div>
-                        <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="checkbox" id="inc-upper" checked><span class="checkbox-custom"></span>uppercase (A-Z)</label>
-                            <label class="checkbox-item"><input type="checkbox" id="inc-lower" checked><span class="checkbox-custom"></span>lowercase (a-z)</label>
-                            <label class="checkbox-item"><input type="checkbox" id="inc-num" checked><span class="checkbox-custom"></span>digits (0-9)</label>
-                            <label class="checkbox-item"><input type="checkbox" id="inc-sym" checked><span class="checkbox-custom"></span>symbols (!@#$)</label>
-                        </div>
-                        <div class="input-with-buttons">
-                            <input type="text" id="tool-gen-output" readonly placeholder="press generate..." spellcheck="false">
-                            <button class="btn btn-icon btn-primary" id="tool-gen-btn" title="Generate"><i class="fas fa-sync"></i></button>
-                            <button class="btn btn-icon btn-secondary" id="tool-copy-btn" title="Copy"><i class="fas fa-copy"></i></button>
-                        </div>
-                        <div class="strength-container">
-                            <span class="strength-text" id="pass-entropy">—</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="term-panel">
-                    <div class="term-titlebar">
-                        <span class="term-dots"><i></i><i></i><i></i></span>
-                        <span class="term-path">kriptex@local:~/generator --passphrase</span>
-                    </div>
-                    <div class="term-body">
-                        <div class="input-group">
-                            <label>&gt; word_count <span class="label-hint">— EFF large wordlist, 12.9 bits per word</span></label>
-                            <input type="number" id="word-count" min="3" max="12" value="6" class="styled-input">
-                        </div>
-                        <div class="checkbox-group">
-                            <label class="checkbox-item"><input type="checkbox" id="add-number"><span class="checkbox-custom"></span>append digits</label>
-                            <label class="checkbox-item"><input type="checkbox" id="add-symbol"><span class="checkbox-custom"></span>append symbol</label>
-                            <label class="checkbox-item"><input type="checkbox" id="capitalize-words" checked><span class="checkbox-custom"></span>capitalize words</label>
-                        </div>
-                        <div class="input-with-buttons">
-                            <input type="text" id="passphrase-output" readonly placeholder="press generate..." spellcheck="false">
-                            <button class="btn btn-icon btn-primary" id="passphrase-gen-btn" title="Generate"><i class="fas fa-sync"></i></button>
-                            <button class="btn btn-icon btn-secondary" id="passphrase-copy-btn" title="Copy"><i class="fas fa-copy"></i></button>
-                        </div>
-                        <div class="strength-container">
-                            <span class="strength-text" id="passphrase-entropy">—</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== TAB: ENCRYPTED VAULT (NOTES) ==================== -->
-        <section id="tab-vault" class="tab-content">
-
-            <!-- Locked state: setup or unlock -->
-            <div class="term-panel" id="vault-gate">
-                <div class="term-titlebar">
-                    <span class="term-dots"><i></i><i></i><i></i></span>
-                    <span class="term-path">kriptex@local:~/vault --locked</span>
-                    <span class="term-badge">AES-256-GCM</span>
-                </div>
-                <div class="term-body">
-                    <div class="vault-state" id="vault-setup" style="display:none;">
-                        <div class="level-note">
-                            <i class="fas fa-shield-halved"></i>
-                            <div>No vault found on this device. Create a master passphrase — it never leaves this browser. Notes are sealed with AES-256-GCM and stored only in <code>localStorage</code>. If you forget the passphrase, the vault is unrecoverable by design.</div>
-                        </div>
-                        <div class="input-group">
-                            <label>&gt; new_master_passphrase</label>
-                            <input type="password" id="vault-setup-pass" placeholder="Minimum 8 characters..." autocomplete="new-password">
-                        </div>
-                        <div class="input-group">
-                            <label>&gt; confirm_passphrase</label>
-                            <input type="password" id="vault-setup-pass2" placeholder="Repeat it..." autocomplete="new-password">
-                        </div>
-                        <div class="strength-container">
-                            <div class="strength-meter"><div class="strength-bar" id="vault-strength-bar"></div></div>
-                            <span class="strength-text" id="vault-strength-text">strength: —</span>
-                        </div>
-                        <div class="button-row">
-                            <button class="btn btn-primary" id="vault-create-btn">[ create_vault ]</button>
-                        </div>
-                    </div>
-
-                    <div class="vault-state" id="vault-unlock" style="display:none;">
-                        <div class="level-note">
-                            <i class="fas fa-lock"></i>
-                            <div>Vault is locked. Enter your master passphrase — the key is derived in memory and the vault is verified by decrypting a sentinel value. Nothing is transmitted.</div>
-                        </div>
-                        <div class="input-group">
-                            <label>&gt; master_passphrase</label>
-                            <input type="password" id="vault-pass" placeholder="Enter passphrase..." autocomplete="current-password">
-                        </div>
-                        <div class="button-row">
-                            <button class="btn btn-primary" id="vault-unlock-btn">[ unlock ]</button>
-                        </div>
-                        <div class="vault-meta" id="vault-meta"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Unlocked state: notes app -->
-            <div class="term-panel" id="vault-app" style="display:none;">
-                <div class="term-titlebar">
-                    <span class="term-dots"><i></i><i></i><i></i></span>
-                    <span class="term-path">kriptex@local:~/vault --session-active</span>
-                    <span class="term-badge live">UNLOCKED</span>
-                </div>
-                <div class="term-body">
-                    <div class="vault-toolbar">
-                        <button class="btn btn-primary" id="note-new-btn">[ + new_note ]</button>
-                        <input type="text" id="note-search" class="styled-input" placeholder="grep notes..." spellcheck="false">
-                        <span class="autolock" title="Session auto-locks after inactivity">
-                            <i class="fas fa-hourglass-half"></i> <span id="vault-autolock-timer">05:00</span>
-                        </span>
-                        <button class="btn btn-secondary" id="vault-lock-btn" title="Lock now"><i class="fas fa-lock"></i> lock</button>
-                    </div>
-
-                    <div class="vault-layout">
-                        <aside class="note-list" id="note-list"></aside>
-                        <div class="note-editor" id="note-editor" style="display:none;">
-                            <input type="text" id="note-title" class="styled-input" placeholder="note title..." spellcheck="false">
-                            <textarea id="note-body" placeholder="Write your note here. It is encrypted on save — plaintext only lives in memory while unlocked." spellcheck="false"></textarea>
-                            <div class="note-editor-bar">
-                                <span class="note-status" id="note-status">—</span>
-                                <div class="note-editor-actions">
-                                    <button class="btn btn-secondary" id="note-delete-btn">[ delete ]</button>
-                                    <button class="btn btn-primary" id="note-save-btn">[ save ]</button>
+                            <div class="stack">
+                                <div class="callout">
+                                    <i class="fas fa-circle-info" aria-hidden="true"></i>
+                                    <span>Runs in a worker with a live rate. Cancel stops it immediately.</span>
+                                </div>
+                                <div class="progress" id="crack-progress" style="display:none;">
+                                    <div class="progress-track"><div class="progress-fill" id="crack-progress-fill"></div></div>
+                                    <span class="progress-text" id="crack-progress-text">—</span>
+                                </div>
+                                <div class="crack-result" id="crack-result" style="display:none;"></div>
+                                <div class="row">
+                                    <button class="btn btn-primary" id="crack-start-btn" type="button">Start recovery</button>
+                                    <button class="btn btn-secondary" id="crack-cancel-btn" type="button" disabled>Abort</button>
                                 </div>
                             </div>
                         </div>
-                        <div class="note-empty" id="note-empty">
-                            <i class="fas fa-file-shield"></i>
-                            <p>No note selected</p>
-                            <small>select one on the left or create a new note</small>
+                    </div>
+                </section>
+            </section>
+
+            <!-- ---------------- GENERATOR ---------------- -->
+            <section id="tab-generator" class="tab-content" role="tabpanel" aria-label="Generators">
+                <header class="page-head">
+                    <div class="row-between">
+                        <p class="eyebrow">generate</p>
+                        <div class="chips">
+                            <span class="chip"><i class="fas fa-dice" aria-hidden="true"></i> CSPRNG</span>
+                            <span class="chip">entropy shown</span>
                         </div>
                     </div>
+                    <h1 class="page-title">Make something unguessable</h1>
+                    <p class="lede">Randomness comes from the system CSPRNG, never Math.random. Every output comes
+                    with an honest entropy estimate so you can see what you are actually getting.</p>
+                </header>
 
-                    <div class="vault-danger">
-                        <button class="btn btn-outline" id="vault-change-pass-btn">[ change_passphrase ]</button>
-                        <button class="btn btn-secondary" id="vault-export-btn">[ export_backup ]</button>
-                        <button class="btn btn-secondary" id="vault-import-btn">[ import_backup ]</button>
-                        <input type="file" id="vault-import-input" accept=".json,application/json" hidden>
-                        <button class="btn btn-danger" id="vault-wipe-btn">[ wipe_vault ]</button>
-                    </div>
-
-                    <div class="vault-backup-note">
-                        <i class="fas fa-triangle-exclamation"></i>
-                        <span>The vault lives only in this browser's storage. Export a backup regularly — clearing site data destroys it permanently.</span>
-                    </div>
-
-                    <div class="vault-rekey" id="vault-rekey" style="display:none;">
-                        <div class="input-group">
-                            <label>&gt; current_master_passphrase</label>
-                            <input type="password" id="rekey-current" placeholder="Current passphrase..." autocomplete="current-password">
-                        </div>
-                        <div class="input-group">
-                            <label>&gt; new_master_passphrase</label>
-                            <input type="password" id="rekey-new" placeholder="Minimum 8 characters..." autocomplete="new-password">
-                            <div class="strength-container">
-                                <div class="strength-meter"><div class="strength-bar" id="rekey-strength-bar"></div></div>
-                                <span class="strength-text" id="rekey-strength-text">strength: —</span>
+                <div class="split">
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Password</h2>
+                                <p class="card-sub">One character from every enabled class.</p>
+                            </div>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="pass-length">Length: <span id="len-val" class="accent">16</span></label>
+                                    <span class="field-hint">8 – 128</span>
+                                </div>
+                                <input type="range" id="pass-length" min="8" max="128" value="16" class="range">
+                            </div>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-item"><input type="checkbox" id="inc-upper" checked><span class="checkbox-custom" aria-hidden="true"></span>A–Z</label>
+                                <label class="checkbox-item"><input type="checkbox" id="inc-lower" checked><span class="checkbox-custom" aria-hidden="true"></span>a–z</label>
+                                <label class="checkbox-item"><input type="checkbox" id="inc-num" checked><span class="checkbox-custom" aria-hidden="true"></span>0–9</label>
+                                <label class="checkbox-item"><input type="checkbox" id="inc-sym" checked><span class="checkbox-custom" aria-hidden="true"></span>symbols</label>
+                            </div>
+                            <div class="field">
+                                <div class="field-head"><label for="tool-gen-output">Output</label></div>
+                                <div class="input-row">
+                                    <input type="text" id="tool-gen-output" readonly placeholder="press generate..." spellcheck="false">
+                                    <button class="icon-btn" id="tool-gen-btn" type="button" title="Generate" aria-label="Generate password"><i class="fas fa-sync" aria-hidden="true"></i></button>
+                                    <button class="icon-btn" id="tool-copy-btn" type="button" title="Copy" aria-label="Copy password"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                                </div>
+                                <div class="strength-container">
+                                    <div class="strength-meter"><div class="strength-bar" id="pass-entropy-bar"></div></div>
+                                    <span class="strength-text" id="pass-entropy">—</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="input-group">
-                            <label>&gt; confirm_new_passphrase</label>
-                            <input type="password" id="rekey-confirm" placeholder="Repeat it..." autocomplete="new-password">
+                    </section>
+
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Passphrase</h2>
+                                <p class="card-sub">EFF large wordlist · 7,776 words.</p>
+                            </div>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="field">
+                                <div class="field-head">
+                                    <label for="word-count">Words</label>
+                                    <span class="field-hint">3 – 12</span>
+                                </div>
+                                <input type="number" id="word-count" min="3" max="12" value="6">
+                            </div>
+                            <div class="checkbox-grid">
+                                <label class="checkbox-item"><input type="checkbox" id="add-number"><span class="checkbox-custom" aria-hidden="true"></span>append digits</label>
+                                <label class="checkbox-item"><input type="checkbox" id="add-symbol"><span class="checkbox-custom" aria-hidden="true"></span>append symbol</label>
+                                <label class="checkbox-item"><input type="checkbox" id="capitalize-words" checked><span class="checkbox-custom" aria-hidden="true"></span>capitalize</label>
+                            </div>
+                            <div class="field">
+                                <div class="field-head"><label for="passphrase-output">Output</label></div>
+                                <div class="input-row">
+                                    <input type="text" id="passphrase-output" readonly placeholder="press generate..." spellcheck="false">
+                                    <button class="icon-btn" id="passphrase-gen-btn" type="button" title="Generate" aria-label="Generate passphrase"><i class="fas fa-sync" aria-hidden="true"></i></button>
+                                    <button class="icon-btn" id="passphrase-copy-btn" type="button" title="Copy" aria-label="Copy passphrase"><i class="fas fa-copy" aria-hidden="true"></i></button>
+                                </div>
+                                <div class="strength-container">
+                                    <div class="strength-meter"><div class="strength-bar" id="passphrase-entropy-bar"></div></div>
+                                    <span class="strength-text" id="passphrase-entropy">—</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="button-row">
-                            <button class="btn btn-primary" id="rekey-save">[ re-key ]</button>
-                            <button class="btn btn-secondary" id="rekey-cancel">[ cancel ]</button>
-                        </div>
-                    </div>
+                        <footer class="card-foot">
+                            <span class="card-foot-note">Six words ≈ 77 bits — far beyond a typical password policy.</span>
+                        </footer>
+                    </section>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- ==================== TAB: SETTINGS ==================== -->
-        <section id="tab-settings" class="tab-content">
-            <div class="dual-grid">
-                <div class="term-panel">
-                    <div class="term-titlebar">
-                        <span class="term-dots"><i></i><i></i><i></i></span>
-                        <span class="term-path">kriptex@local:~/settings --theme</span>
-                    </div>
-                    <div class="term-body">
-                        <div class="theme-options">
-                            <button class="theme-btn active" data-theme="fsociety"><span class="theme-color" style="background:#33ff66;"></span>fsociety</button>
-                            <button class="theme-btn" data-theme="darkarmy"><span class="theme-color" style="background:#ff2d4d;"></span>darkarmy</button>
-                            <button class="theme-btn" data-theme="whiterose"><span class="theme-color" style="background:#e8e8f2;"></span>whiterose</button>
-                            <button class="theme-btn" data-theme="ecorp"><span class="theme-color" style="background:#4da3ff;"></span>ecorp</button>
-                        </div>
-                        <div class="fx-toggle-row">
-                            <span><i class="fas fa-terminal"></i> visual fx (rain, glow, tilt)</span>
-                            <label class="switch">
-                                <input type="checkbox" id="fx-toggle" checked>
-                                <span class="slider-track"></span>
-                            </label>
+            <!-- ---------------- VAULT ---------------- -->
+            <section id="tab-vault" class="tab-content" role="tabpanel" aria-label="Encrypted vault">
+                <header class="page-head">
+                    <div class="row-between">
+                        <p class="eyebrow">vault</p>
+                        <div class="chips">
+                            <span class="chip"><i class="fas fa-shield-halved" aria-hidden="true"></i> AES-256-GCM</span>
+                            <span class="chip">localStorage</span>
                         </div>
                     </div>
+                    <h1 class="page-title">Encrypted notes</h1>
+                    <p class="lede">One sealed blob in this browser's storage, unlocked with a master passphrase
+                    that is never written down. Export a backup — that blob is the only copy.</p>
+                </header>
+
+                <div class="gate" id="vault-gate">
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Unlock</h2>
+                                <p class="card-sub">The key is derived in memory and wiped on lock.</p>
+                            </div>
+                            <span class="badge">AES-256-GCM</span>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="vault-state" id="vault-setup" style="display:none;">
+                                <div class="stack">
+                                    <div class="callout">
+                                        <i class="fas fa-circle-info" aria-hidden="true"></i>
+                                        <span>No vault on this device yet. Pick a master passphrase — if you lose it,
+                                        the notes are unrecoverable by design.</span>
+                                    </div>
+                                    <div class="field">
+                                        <div class="field-head">
+                                            <label for="vault-setup-pass">Master passphrase</label>
+                                            <span class="field-hint">at least 8 characters</span>
+                                        </div>
+                                        <input type="password" id="vault-setup-pass" placeholder="Minimum 8 characters..." autocomplete="new-password">
+                                        <div class="strength-container">
+                                            <div class="strength-meter"><div class="strength-bar" id="vault-strength-bar"></div></div>
+                                            <span class="strength-text" id="vault-strength-text">strength: —</span>
+                                        </div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="field-head"><label for="vault-setup-pass2">Confirm</label></div>
+                                        <input type="password" id="vault-setup-pass2" placeholder="Repeat it..." autocomplete="new-password">
+                                    </div>
+                                    <button class="btn btn-primary" id="vault-create-btn" type="button">Create vault</button>
+                                </div>
+                            </div>
+
+                            <div class="vault-state" id="vault-unlock" style="display:none;">
+                                <div class="stack">
+                                    <div class="field">
+                                        <div class="field-head">
+                                            <label for="vault-pass">Master passphrase</label>
+                                            <span class="field-hint">sentinel-verified</span>
+                                        </div>
+                                        <input type="password" id="vault-pass" placeholder="Enter passphrase..." autocomplete="current-password">
+                                    </div>
+                                    <div class="row">
+                                        <button class="btn btn-primary" id="vault-unlock-btn" type="button">Unlock</button>
+                                        <button class="btn btn-ghost" id="vault-import-btn" type="button">Restore a backup</button>
+                                        <input type="file" id="vault-import-input" accept=".json,application/json" hidden>
+                                    </div>
+                                    <div class="vault-meta" id="vault-meta"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
 
-                <div class="term-panel">
-                    <div class="term-titlebar">
-                        <span class="term-dots"><i></i><i></i><i></i></span>
-                        <span class="term-path">kriptex@local:~/settings --stack</span>
-                    </div>
-                    <div class="term-body">
-                        <div class="algo-info">
-                            <div class="algo-item">
-                                <h4>AES-GCM (128/256)</h4>
-                                <span class="tag">active</span>
-                                <p>Authenticated encryption — confidentiality plus tamper detection in one primitive.</p>
+                <div id="vault-app" style="display:none;">
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Notes</h2>
+                                <p class="card-sub">Auto-saves while you type.</p>
                             </div>
-                            <div class="algo-item">
-                                <h4>PBKDF2-HMAC-SHA256</h4>
-                                <span class="tag">active</span>
-                                <p>Key stretching, 600k–2M iterations depending on the selected profile; every blob records its own work factor.</p>
+                            <div class="row">
+                                <span class="autolock"><i class="fas fa-hourglass-half" aria-hidden="true"></i> <span id="vault-autolock-timer">05:00</span></span>
+                                <span class="badge badge-ok">unlocked</span>
                             </div>
-                            <div class="algo-item">
-                                <h4>zlib (Pako) streaming</h4>
-                                <span class="tag">active</span>
-                                <p>DEFLATE in 4 MB chunks inside a Web Worker — live progress, responsive UI, and a hard cap on inflation.</p>
+                        </header>
+                        <div class="card-body">
+                            <div class="vault-toolbar">
+                                <button class="btn btn-secondary" id="note-new-btn" type="button"><i class="fas fa-plus" aria-hidden="true"></i> New note</button>
+                                <input type="text" id="note-search" class="search" placeholder="Filter notes..." spellcheck="false">
+                                <button class="btn btn-ghost" id="vault-lock-btn" type="button" title="Lock now"><i class="fas fa-lock" aria-hidden="true"></i> Lock</button>
                             </div>
-                            <div class="algo-item">
-                                <h4>Vault storage</h4>
-                                <span class="tag">active</span>
-                                <p>Notes sealed as one AES-256-GCM blob in localStorage; key lives in RAM only.</p>
+
+                            <div class="vault-layout">
+                                <aside class="note-list" id="note-list"></aside>
+                                <div class="note-editor" id="note-editor" style="display:none;">
+                                    <input type="text" id="note-title" placeholder="Note title..." spellcheck="false">
+                                    <textarea id="note-body" placeholder="Write your note. It is encrypted on save; plaintext lives only in this tab while unlocked." spellcheck="false"></textarea>
+                                    <div class="note-editor-bar">
+                                        <span class="note-status" id="note-status">—</span>
+                                        <div class="row">
+                                            <button class="btn btn-ghost" id="note-delete-btn" type="button">Delete</button>
+                                            <button class="btn btn-primary btn-sm" id="note-save-btn" type="button"><i class="fas fa-floppy-disk" aria-hidden="true"></i> Save</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="note-empty" id="note-empty">
+                                    <i class="fas fa-file-shield" aria-hidden="true"></i>
+                                    <p>No note selected</p>
+                                    <small>Pick one on the left, or create a new note.</small>
+                                </div>
                             </div>
                         </div>
+                    </section>
+
+                    <div class="split mt-5">
+                        <section class="card">
+                            <header class="card-head">
+                                <div>
+                                    <h2>Backup</h2>
+                                    <p class="card-sub">Ciphertext only — no key, no plaintext.</p>
+                                </div>
+                            </header>
+                            <div class="card-body stack">
+                                <p class="body-text">This vault lives only in this browser's storage. Clearing site
+                                data, or a profile reset, destroys it permanently.</p>
+                                <div class="callout callout-warn">
+                                    <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+                                    <span>Export a backup after every important change and keep it somewhere else.</span>
+                                </div>
+                                <div class="row">
+                                    <button class="btn btn-secondary" id="vault-export-btn" type="button"><i class="fas fa-download" aria-hidden="true"></i> Export backup</button>
+                                    <button class="btn btn-secondary" id="vault-import-btn2" type="button"><i class="fas fa-upload" aria-hidden="true"></i> Import backup</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="card">
+                            <header class="card-head">
+                                <div>
+                                    <h2>Danger zone</h2>
+                                    <p class="card-sub">Re-key, or destroy the vault.</p>
+                                </div>
+                            </header>
+                            <div class="card-body stack">
+                                <button class="btn btn-outline" id="vault-change-pass-btn" type="button">Change master passphrase</button>
+                                <button class="btn btn-danger" id="vault-wipe-btn" type="button"><i class="fas fa-trash" aria-hidden="true"></i> Wipe vault</button>
+                            </div>
+                        </section>
                     </div>
+
+                    <section class="card mt-5" id="vault-rekey" style="display:none;">
+                        <header class="card-head">
+                            <div>
+                                <h2>Re-key the vault</h2>
+                                <p class="card-sub">A fresh salt is generated; the old passphrase stops working.</p>
+                            </div>
+                        </header>
+                        <div class="card-body split">
+                            <div class="stack">
+                                <div class="field">
+                                    <div class="field-head"><label for="rekey-current">Current passphrase</label></div>
+                                    <input type="password" id="rekey-current" placeholder="Current passphrase..." autocomplete="current-password">
+                                </div>
+                                <div class="field">
+                                    <div class="field-head"><label for="rekey-new">New passphrase</label></div>
+                                    <input type="password" id="rekey-new" placeholder="Minimum 8 characters..." autocomplete="new-password">
+                                    <div class="strength-container">
+                                        <div class="strength-meter"><div class="strength-bar" id="rekey-strength-bar"></div></div>
+                                        <span class="strength-text" id="rekey-strength-text">strength: —</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stack">
+                                <div class="field">
+                                    <div class="field-head"><label for="rekey-confirm">Confirm new passphrase</label></div>
+                                    <input type="password" id="rekey-confirm" placeholder="Repeat it..." autocomplete="new-password">
+                                </div>
+                                <div class="row">
+                                    <button class="btn btn-primary" id="rekey-save" type="button">Re-key vault</button>
+                                    <button class="btn btn-ghost" id="rekey-cancel" type="button">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <!-- ---------------- SETTINGS ---------------- -->
+            <section id="tab-settings" class="tab-content" role="tabpanel" aria-label="Settings">
+                <header class="page-head">
+                    <div class="row-between">
+                        <p class="eyebrow">settings</p>
+                        <div class="chips">
+                            <span class="chip">no telemetry</span>
+                            <span class="chip">no cookies</span>
+                        </div>
+                    </div>
+                    <h1 class="page-title">Make it yours</h1>
+                    <p class="lede">Preferences are stored in this browser only. Nothing here is sent anywhere.</p>
+                </header>
+
+                <div class="split">
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Theme</h2>
+                                <p class="card-sub">Four palettes, one layout.</p>
+                            </div>
+                        </header>
+                        <div class="card-body">
+                            <div class="theme-grid">
+                                <button class="theme-btn active" data-theme="fsociety" type="button"><span class="theme-color" style="background:#38f08c;"></span>fsociety</button>
+                                <button class="theme-btn" data-theme="darkarmy" type="button"><span class="theme-color" style="background:#ff4d6d;"></span>darkarmy</button>
+                                <button class="theme-btn" data-theme="ecorp" type="button"><span class="theme-color" style="background:#4aa8ff;"></span>ecorp</button>
+                                <button class="theme-btn" data-theme="whiterose" type="button"><span class="theme-color" style="background:#0f766e;"></span>whiterose</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Effects</h2>
+                                <p class="card-sub">Motion is reduced automatically when the OS asks.</p>
+                            </div>
+                        </header>
+                        <div class="card-body stack">
+                            <div class="fx-toggle-row">
+                                <div>
+                                    <p class="body-text">Ambient rain &amp; cursor glow</p>
+                                    <p class="card-sub">Turn off for a quieter, faster page.</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="fx-toggle" checked>
+                                    <span class="slider-track" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Toggle ambient effects</span>
+                                </label>
+                            </div>
+                            <div class="callout">
+                                <i class="fas fa-bolt" aria-hidden="true"></i>
+                                <span>The app works identically with effects off — they are decoration only.</span>
+                            </div>
+                        </div>
+                    </section>
                 </div>
 
-                <div class="term-panel">
-                    <div class="term-titlebar">
-                        <span class="term-dots"><i></i><i></i><i></i></span>
-                        <span class="term-path">kriptex@local:~/settings --about</span>
-                    </div>
-                    <div class="term-body">
-                        <div class="about-content">
-                            <p>KRIPTEX is a fully client-side cryptography toolkit. No accounts, no server, no analytics — close the tab and everything in memory is gone. The only persistence is the encrypted vault blob in your own browser.</p>
+                <div class="split mt-5">
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>Cryptographic stack</h2>
+                                <p class="card-sub">What is doing the work.</p>
+                            </div>
+                        </header>
+                        <div class="card-body">
+                            <ul class="algo-list">
+                                <li class="algo-item"><div><h4>AES-GCM 128 / 256</h4><p>Authenticated encryption — confidentiality plus tamper detection.</p></div><span class="tag">active</span></li>
+                                <li class="algo-item"><div><h4>PBKDF2-HMAC-SHA256</h4><p>600k / 1M / 2M iterations; each blob records its own cost.</p></div><span class="tag">active</span></li>
+                                <li class="algo-item"><div><h4>zlib via pako</h4><p>4 MB chunks in a worker, with a hard inflation cap.</p></div><span class="tag">active</span></li>
+                                <li class="algo-item"><div><h4>Vault storage</h4><p>One AES-GCM blob in localStorage; the key lives in RAM only.</p></div><span class="tag">active</span></li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <header class="card-head">
+                            <div>
+                                <h2>About</h2>
+                                <p class="card-sub">KRIPTEX v4.2</p>
+                            </div>
+                        </header>
+                        <div class="card-body stack">
+                            <p class="body-text">A fully client-side cryptography toolkit. No accounts, no server, no
+                            analytics. The only persistence is the encrypted vault blob in your own browser.</p>
                             <div class="tech-stack">
-                                <span class="tech-badge">Web Crypto API</span>
-                                <span class="tech-badge">Crypto-JS</span>
-                                <span class="tech-badge">Pako</span>
+                                <span class="tech-badge">Web Crypto</span>
+                                <span class="tech-badge">CryptoJS</span>
+                                <span class="tech-badge">pako</span>
                                 <span class="tech-badge">Web Workers</span>
                                 <span class="tech-badge">Canvas</span>
                             </div>
-                            <div class="security-note">
-                                <i class="fas fa-shield-halved"></i>
-                                <span>All computation happens on this device. Review the source — it is meant to be audited.</span>
+                            <div class="callout">
+                                <i class="fas fa-shield-halved" aria-hidden="true"></i>
+                                <span>Read the source before trusting it with anything that matters — that is the
+                                point of shipping the whole toolkit as static files.</span>
                             </div>
                         </div>
-                    </div>
+                    </section>
                 </div>
-            </div>
-        </section>
+            </section>
+
+            <footer class="app-footer">
+                <span>© 2026 KRIPTEX — runs 100% locally</span>
+                <span>no server · no tracking · audit the source</span>
+            </footer>
+        </div>
     </main>
+</div>
 
-    <footer class="footer">
-        <span class="muted">&copy; 2026 KRIPTEX — runs 100% locally</span>
-        <span class="muted">no server &middot; no tracking &middot; audit the source</span>
-    </footer>
+<div id="status-message" class="status-toast" role="status" aria-live="polite"></div>
 
-    <div id="status-message" class="status-toast" role="status" aria-live="polite"></div>
+<div class="modal" id="modal" hidden>
+    <div class="modal-scrim" data-modal-cancel></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-body">
+        <h3 id="modal-title">Confirm</h3>
+        <p class="modal-body" id="modal-body"></p>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" id="modal-cancel" type="button">Cancel</button>
+            <button class="btn btn-danger" id="modal-confirm" type="button">Confirm</button>
+        </div>
+    </div>
 </div>
 
 <!-- Vendored third-party libraries (see assets/vendor/CHECKSUMS.txt) -->

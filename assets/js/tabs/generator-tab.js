@@ -94,11 +94,16 @@ KX.generators = (() => {
 KX.tabs.generator = (() => {
     const U = KX.utils;
 
-    function renderEntropy(el, bits) {
-        if (!el) return;
+    function renderEntropy(textEl, barEl, bits) {
         const info = KX.generators.entropyLabel(bits);
-        el.textContent = info.text;
-        el.style.color = info.color;
+        if (textEl) {
+            textEl.textContent = info.text;
+            textEl.style.color = info.color;
+        }
+        if (barEl) {
+            barEl.style.width = Math.min(100, Math.max(0, bits)) + '%';
+            barEl.style.background = info.color;
+        }
     }
 
     function init() {
@@ -122,7 +127,11 @@ KX.tabs.generator = (() => {
             }
             const length = parseInt(slider.value, 10);
             U.$('tool-gen-output').value = KX.generators.password(length, upper, lower, digits, symbols);
-            renderEntropy(U.$('pass-entropy'), KX.generators.passwordEntropy(length, upper, lower, digits, symbols));
+            renderEntropy(
+                U.$('pass-entropy'),
+                U.$('pass-entropy-bar'),
+                KX.generators.passwordEntropy(length, upper, lower, digits, symbols)
+            );
         });
 
         U.$('tool-copy-btn').addEventListener('click', () => {
@@ -131,9 +140,11 @@ KX.tabs.generator = (() => {
 
         const updatePassphraseEntropy = () => {
             const count = Math.min(12, Math.max(3, parseInt(U.$('word-count').value, 10) || 4));
-            renderEntropy(U.$('passphrase-entropy'), KX.generators.passphraseEntropy(
-                count, U.$('add-number').checked, U.$('add-symbol').checked
-            ));
+            renderEntropy(
+                U.$('passphrase-entropy'),
+                U.$('passphrase-entropy-bar'),
+                KX.generators.passphraseEntropy(count, U.$('add-number').checked, U.$('add-symbol').checked)
+            );
         };
         U.$('word-count').addEventListener('input', updatePassphraseEntropy);
         U.$('add-number').addEventListener('change', updatePassphraseEntropy);

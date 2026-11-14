@@ -230,7 +230,12 @@ KX.tabs.notes = (() => {
 
     async function handleDelete() {
         if (!activeNoteId) return;
-        if (!confirm('Delete this note permanently?')) return;
+        const ok = await U.confirmAction({
+            title: 'Delete this note?',
+            body: 'The note is removed from the vault and the blob is re-sealed. This cannot be undone.',
+            confirmLabel: 'Delete note'
+        });
+        if (!ok) return;
         try {
             V.deleteNote(activeNoteId);
             await V.persist();
@@ -259,10 +264,14 @@ KX.tabs.notes = (() => {
         if (!file) return;
         try {
             const text = await file.text();
-            const replace = V.exists()
-                ? confirm('A vault already exists in this browser. Replace it with the backup?')
-                : true;
-            if (!replace) return;
+            if (V.exists()) {
+                const replace = await U.confirmAction({
+                    title: 'Replace the current vault?',
+                    body: 'A vault already exists in this browser. Restoring the backup overwrites it, and the current notes are lost unless you exported them.',
+                    confirmLabel: 'Replace vault'
+                });
+                if (!replace) return;
+            }
             const meta = await V.importBlob(text, { replace: true });
             lockUI();
             U.toast(`Backup restored (${meta.notesCount} notes). Unlock it with its master passphrase.`, 'success');
@@ -305,9 +314,13 @@ KX.tabs.notes = (() => {
         }
     }
 
-    function handleWipe() {
-        if (!confirm('Wipe the entire vault from this browser? This is irreversible.')) return;
-        if (!confirm('Really sure? All encrypted notes will be destroyed.')) return;
+    async function handleWipe() {
+        const first = await U.confirmAction({
+            title: 'Wipe the entire vault?',
+            body: 'Every encrypted note in this browser is destroyed. There is no undo and no recovery without a backup.',
+            confirmLabel: 'Wipe vault'
+        });
+        if (!first) return;
         V.wipe();
         lockUI();
         U.toast('Vault wiped from localStorage.', 'warning');
@@ -337,7 +350,10 @@ KX.tabs.notes = (() => {
             U.renderStrength(U.$('rekey-strength-bar'), U.$('rekey-strength-text'), e.target.value);
         });
         U.$('vault-export-btn').addEventListener('click', handleExport);
-        U.$('vault-import-btn').addEventListener('click', () => U.$('vault-import-input').click());
+        ['vault-import-btn', 'vault-import-btn2'].forEach((id) => {
+            const btn = U.$(id);
+            if (btn) btn.addEventListener('click', () => U.$('vault-import-input').click());
+        });
         U.$('vault-import-input').addEventListener('change', (e) => {
             if (e.target.files.length) handleImportFile(e.target.files[0]);
         });

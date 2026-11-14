@@ -1,4 +1,4 @@
-# KRIPTEX v4.1 — Client-Side Encryption Suite
+# KRIPTEX v4.2 — Client-Side Encryption Suite
 
 [![ci](https://github.com/akadirsanli/kriptex/actions/workflows/ci.yml/badge.svg)](https://github.com/akadirsanli/kriptex/actions/workflows/ci.yml)
 [![license: MIT](https://img.shields.io/badge/license-MIT-33ff66.svg)](LICENSE)
@@ -37,6 +37,26 @@ Content-Security-Policy (`connect-src 'none'`) enforces it.
   sentinel-based passphrase check, idle auto-lock, encrypted export/import
   backups, cross-tab locking and a guard against storage quota failures.
 
+## Interface
+
+A persistent control rail on the left, one working area on the right, and a
+card-based layout that puts the input and the result side by side. The four
+palettes (`fsociety`, `darkarmy`, `ecorp`, `whiterose`) are token-driven, so
+every component respects the active theme — including a genuinely light one.
+
+* Typography pairs **Inter** for prose with **JetBrains Mono** for labels, code
+  and numbers. Both are self-hosted, subsetted to latin + latin-ext.
+* Destructive actions use an in-page modal instead of `window.confirm()`;
+  buttons, dropzones, tabs and switches are keyboard operable and labelled.
+* Motion is decorative only: it respects `prefers-reduced-motion`, can be
+  switched off entirely, and the app is identical without it.
+* The layout collapses to a single column below 1100px and to a scrollable
+  top nav below 900px.
+
+`tests/design.test.mjs` keeps it honest: balanced stylesheets, no undefined
+custom properties, no unstyled class in the markup, one heading per panel, and
+no unlabelled buttons.
+
 ## Quick start
 
 Web Crypto requires a secure context, so serve the folder over `http://localhost`
@@ -55,7 +75,7 @@ the same static files.
 ## Verify it
 
 ```bash
-node --test tests/            # 30 tests: crypto vectors, formats, vault, static checks
+node --test tests/            # 36 tests: crypto vectors, formats, vault, static checks
 node scripts/checksums.mjs    # regenerate assets/vendor/CHECKSUMS.txt after an update
 ```
 

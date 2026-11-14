@@ -1,5 +1,48 @@
 # Changelog
 
+## 4.2.0 — 2026-11-15
+
+A full interface rebuild. Nothing about the formats, the crypto or stored data
+changed: v4.2 opens everything v4.1 wrote.
+
+### Layout
+* Replaced the stacked terminal windows with a control rail plus a single
+  workspace, and split each tool into cards that put the input and the result
+  side by side.
+* Added a page header per section (eyebrow, title, chips) so each tool explains
+  itself before you use it.
+* Responsive: two columns collapse at 1100px, the rail becomes a scrollable top
+  nav at 900px, and stat grids drop to two columns at 720px.
+
+### Design system
+* Token-based palettes (surface, border, text, accent, states) shared by every
+  component, with a genuine light theme (`whiterose`) that has its own contrast
+  values.
+* New type pairing: Inter for prose, JetBrains Mono for labels, numbers and
+  code. Inter is vendored and subsetted like the other fonts.
+* Reworked components: buttons with four clear levels, segmented control,
+  badges, stat tiles, spec lists, callouts, file chips, empty states, toasts
+  and progress bars (including an indeterminate sweep).
+* Motion reduced to a faint ambient layer; the CRT scanline, panel tilt and
+  click-burst effects are gone.
+
+### Interaction
+* Destructive actions use an in-page modal (`utils.confirmAction`) instead of
+  `window.confirm()`, with Escape/Enter handling and focus restore.
+* Keyboard support for dropzones, visible focus rings on every control, a skip
+  link, ARIA roles for the tablist and panels, and a label on every icon-only
+  button.
+* The theme can be switched from the rail as well as from Settings, and the
+  browser chrome colour follows the active theme.
+* Tab links are deep-linkable (`#vault`), and switching sections scrolls to the
+  top.
+
+### Quality
+* Added `tests/design.test.mjs`: balanced stylesheets, every custom property
+  defined, every class styled, one heading per panel, no unnamed buttons.
+* The encoding guard from 4.1 covers the new files too.
+* 36 tests in total.
+
 ## 4.1.0 — 2026-11-15
 
 Security and durability hardening. No action is required for existing data:
