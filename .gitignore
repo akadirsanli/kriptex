@@ -1,0 +1,17 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
+.vscode/
+*.log
+
+# Dependencies and build output (the app has none, but keep forks tidy)
+node_modules/
+dist/
+coverage/
+
+# Local test output
+.playwright/
+test-results/
