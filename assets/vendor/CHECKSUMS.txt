@@ -1,0 +1,17 @@
+# SHA-256 of every vendored third-party file.
+# Regenerate with: node scripts/checksums.mjs
+# Verify with:     node --test tests/
+
+769a555de553babc35a3338f344dd7aa16260c93cea2c7db290707c90484e7cc  assets/vendor/crypto-js.min.js
+c22cfb6520a7fdbb738632834019acf47c78b1279462c0eb4cb83bae83ecb5a7  assets/vendor/fontawesome/css/all.min.css
+9fc85f3a4544ab0d570c7f8f9bbb88db8d92c359b2707580ea8b07c75673eae2  assets/vendor/fontawesome/webfonts/fa-solid-900.woff2
+a53b6b29b1621cdf51140761869e160521fc566a4a9f312d9b92e7178d433bc7  assets/vendor/fonts/jetbrains-mono-italic-400-latin-ext.woff2
+87ddac4a62229787528cf4ac3fa58137b62a9aec364c44fc0f40470bcda9efba  assets/vendor/fonts/jetbrains-mono-italic-400-latin.woff2
+db5ff4db83e580426280e9337a58dc57d3a83784a1b03ad80914651594441d52  assets/vendor/fonts/jetbrains-mono-normal-400-latin-ext.woff2
+83c005d49d8a6a50474c73a5a36ac0468076e9c4a29da7bdb14995d80560a5be  assets/vendor/fonts/jetbrains-mono-normal-400-latin.woff2
+db5ff4db83e580426280e9337a58dc57d3a83784a1b03ad80914651594441d52  assets/vendor/fonts/jetbrains-mono-normal-600-latin-ext.woff2
+83c005d49d8a6a50474c73a5a36ac0468076e9c4a29da7bdb14995d80560a5be  assets/vendor/fonts/jetbrains-mono-normal-600-latin.woff2
+db5ff4db83e580426280e9337a58dc57d3a83784a1b03ad80914651594441d52  assets/vendor/fonts/jetbrains-mono-normal-800-latin-ext.woff2
+83c005d49d8a6a50474c73a5a36ac0468076e9c4a29da7bdb14995d80560a5be  assets/vendor/fonts/jetbrains-mono-normal-800-latin.woff2
+b8664276ba576b16c757ccd6cb05194efce001c5db81d6b73a330edd1e062a22  assets/vendor/fonts/jetbrains-mono.css
+ede2693a4a6a5126b9d35669062b358ecab6ae7b9b86a1cf302feb45a8514907  assets/vendor/pako.min.js
